@@ -16,6 +16,9 @@ import (
     "golang.org/x/crypto/sha3"
     "gitlab.com/mesha/Mnemonics/appsettings"
     "gitlab.com/mesha/Mnemonics/encryption"
+    _ "github.com/skip2/go-qrcode"
+    "github.com/satori/go.uuid"
+
 
 )
 
@@ -23,49 +26,47 @@ import (
 // provided by the post requests on user registration
 
 func(c *User) data() bool{
-  if c.Username == ""{
-        fmt.Println("Problem with the Username")
-        return false
-  }
-  if c.Password == ""{
-        fmt.Println("Problem with Password")
-        return false
-  }
-
   if c.Email == ""{
         fmt.Println("Problem with Password")
         return false
   }
-
   if c.PhoneNumber == ""{
-        fmt.Println("Problem with Password")
+        fmt.Println("Problem with Phone number")
         return false
   }
   return true
 
 }
 
-//This si the struct method which adds useid on the basis of sha3_256 to the
+//This is the struct method which adds useid on the basis of sha3_256 to the
 //struct User
 func(c *User) UseridHash(){
   h := sha3.New256()
   h.Write([]byte(c.Email))
   sha3_hash := hex.EncodeToString(h.Sum(nil))
-  c.UserId = sha3_hash
 }
 
 
 //This si the struct method which adds useid on the basis of sha3_256 to the
 //struct User
 func(c *User) UserTime(){
-  c.CreatedAt = time.Now().Local()
+    loc, _ := time.LoadLocation("Asia/Kolkata")
+    c.CreatedAt = time.Now().In(loc)
+    return
 }
 
 
-func(c *User) GenerateAddress(publicKey interface{}){
-    c.Address = encryption.CreateAddress(publicKey)
-
+func(c *User) Generateuuid() {
+  u2, err := uuid.NewV4()
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return
+	}
+  c.UserID = u2.String()
+  return
 }
+
+
 
 
 func (c *User) HashAndSalt() {
@@ -125,17 +126,20 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
           //Creating a new instance of response object so that response can be returned in JSON
           if user.data() == false{
-            json.NewEncoder(w).Encode(&appsettings.FeynResponse{"Missing parameters",
+            json.NewEncoder(w).Encode(&appsettings.AppResponse{"Missing parameters",
                     false, true, nil})
             return http.StatusNotAcceptable, errors.New("Error in POst parameteres")
           }
           session := appContext.Db.Copy()
           defer session.Close()
+
+          dbName, _ := *appContext.Config.Get("DBname").String()
+
           userCollection := session.DB("feynmen_main_db").C("users")
           userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
           userSecretCollection := session.DB("feynmen_main_db").C("user_secrets")
 
-          dberr := userCollection.Find(bson.M{"username": user.Username}).One(&user)
+          dberr := userCollection.Find(bson.M{"userid": user.UserID}).One(&user)
 
 
 
@@ -171,13 +175,12 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                 pemPublicECDSAKey := encryption.PublicECDSAtoPEM(publicECDSAKey)//Pem encode sting of publicECDSA KEY
 
-                userKeys := encryption.UserKeys{user.UserId, pemPublicRSAKey, pemEncryptedPrivateRSAKey, pemPublicECDSAKey, pemEncryptedPrivateECDSAKey}
+                userKeys := encryption.UserKeys{user.UserID, pemPublicRSAKey, pemEncryptedPrivateRSAKey, pemPublicECDSAKey, pemEncryptedPrivateECDSAKey}
 
                 //BOIth passphrase and salt are base64 encoded strings
-                userSecrets := encryption.UserSecrets{user.UserId, salt, passphrase}
+                userSecrets := encryption.UserSecrets{user.UserID, salt, passphrase}
 
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
-                user.GenerateAddress(pemPublicRSAKey)
 
 
                 err = userCollection.Insert(&user)
@@ -196,10 +199,10 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
 
-                json.NewEncoder(w).Encode(&appsettings.FeynResponse{fmt.Sprintf("User succedeed with userid %s", user.UserId), false, true, nil})
+                json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", user.UserID), false, true, nil})
                 return http.StatusOK, nil
               }else {
-                json.NewEncoder(w).Encode(&appsettings.FeynResponse{"Choose a different username", true, false, nil})
+                json.NewEncoder(w).Encode(&appsettings.AppResponse{"Choose a different username", true, false, nil})
                 return http.StatusUnauthorized, nil
             }
 }

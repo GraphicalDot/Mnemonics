@@ -39,8 +39,8 @@ func (se StatusError) Status() int {
 
 
 func(c *Credentials) data() bool{
-  if c.Username == nil{
-        fmt.Println("Problem with the Username")
+  if c.UserID == nil{
+        fmt.Println("Problem with the UserID")
         return false
   }
   if c.Password == nil{
@@ -79,18 +79,18 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
 
         c := session.DB("feynmen_main_db").C("users")
         user := new(User)
-        dberr := c.Find(bson.M{"username": userCredentials.Username}).One(&user)
+        dberr := c.Find(bson.M{"userid": userCredentials.UserID}).One(&user)
 
 
 
         if dberr != nil {
-          json.NewEncoder(w).Encode(&appsettings.FeynResponse{"User doesnt exists", true, false, nil})
+          json.NewEncoder(w).Encode(&appsettings.AppResponse{"User doesnt exists", true, false, nil})
           return http.StatusOK, nil
             }
 
         passwordmatch := user.ComparePasswords(*userCredentials.Password)
         if !passwordmatch{
-          json.NewEncoder(w).Encode(&appsettings.FeynResponse{"Invalid credentials", true, false, nil})
+          json.NewEncoder(w).Encode(&appsettings.AppResponse{"Invalid credentials", true, false, nil})
           return http.StatusOK, nil
 
         }
@@ -98,7 +98,7 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
 
 
         if userCredentials.data() == false{
-          json.NewEncoder(w).Encode(&appsettings.FeynResponse{"Error with parametres", true, false, nil})
+          json.NewEncoder(w).Encode(&appsettings.AppResponse{"Error with parametres", true, false, nil})
           return http.StatusOK, nil
 
 
@@ -113,12 +113,12 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
             //A map to store our claims
             claims := token.Claims.(jwt.MapClaims)
             /*Set token claims */
-            claims["username"] =  userCredentials.Username
+            claims["userid"] =  userCredentials.UserID
             claims["exp"] = time.Now().Add(time.Hour*12).Unix()
             tokenString, _ := token.SignedString(mySigningKey)
             log.Printf("This is the tokenstring %s", tokenString)
 
-            json.NewEncoder(w).Encode(&appsettings.FeynLoginResponse{"login successful", false, true, string(tokenString)})
+            json.NewEncoder(w).Encode(&appsettings.AppLoginResponse{"login successful", false, true, string(tokenString)})
             return http.StatusOK, nil
 
 

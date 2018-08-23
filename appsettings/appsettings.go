@@ -15,7 +15,7 @@ import (
 
 )
 
-type FeynError struct {
+type AppError struct {
     Message string `json:"message"`
     Error bool `json:"error"`
     Success bool `json:"success"`
@@ -23,7 +23,7 @@ type FeynError struct {
 }
 
 
-type FeynResponse struct {
+type AppResponse struct {
     Message string `json:"message"`
     Error bool `json:"error"`
     Success bool `json:"success"`
@@ -32,7 +32,7 @@ type FeynResponse struct {
 
 
 
-type FeynLoginResponse struct {
+type AppLoginResponse struct {
     Message string `json:"message"`
     Error bool `json:"error"`
     Success bool `json:"success"`
@@ -41,7 +41,7 @@ type FeynLoginResponse struct {
 
 
 
-func (err *FeynError) FError() string {
+func (err *AppError) printError() string {
     return fmt.Sprintf("%s %s %s", err.Message, err.Error, err.Success)
 }
 
@@ -139,11 +139,11 @@ func CheckAuth(h http.Handler, appcontext *AppContext) http.Handler {
                 h.ServeHTTP( w, r)
                 return
                 } else {
-                      json.NewEncoder(w).Encode(&FeynError{"Token is invalid", true, false})
+                      json.NewEncoder(w).Encode(&AppError{"Token is invalid", true, false})
                       return
                       }
           }else{
-              json.NewEncoder(w).Encode(&FeynError{"Authorization header is Missing", true, false})
+              json.NewEncoder(w).Encode(&AppError{"Authorization header is Missing", true, false})
               return
             }
     }
@@ -158,7 +158,7 @@ func RecoverHandler(next http.Handler) http.Handler {
     		defer func() {
       			if err := recover(); err != nil {
         				log.Printf("panic: %+v", err)
-                json.NewEncoder(w).Encode(&FeynError{"Unknown error happened", true, false})
+                json.NewEncoder(w).Encode(&AppError{"Unknown error happened", true, false})
                 return
       			}
     		}()
