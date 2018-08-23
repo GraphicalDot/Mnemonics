@@ -110,7 +110,7 @@ func GenerateScryptKey(saltBytes int, passphraseBytes int)([]byte, error){
 
       b64salt, err := GenerateRandomBytes(passphraseBytes)
 
-      log.Printf("This is the salt for the Scrypt %s", salt)
+      log.Printf("This is the salt for the Scrypt %s", hex.EncodeToString(salt))
       dk, err := scrypt.Key([]byte(b64salt), salt, 32768, 8, 1, 32)
       log.Printf("This is the scrypt key %s", hex.EncodeToString(dk))
 

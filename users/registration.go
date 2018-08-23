@@ -83,6 +83,16 @@ func (c *User) HashAndSalt() {
     return
 }
 
+func (c *User) GeneratePassword(){
+    password, err := encryption.GenerateScryptKey(8, 8)
+    if err != nil {
+          log.Printf("There is an error generating the password %s", err)
+    }
+    log.Printf("This is the password %s", hex.EncodeToString(password))
+
+    c.Password = hex.EncodeToString(password)
+}
+
 func (c *User) ComparePasswords(plainPassword string) bool {
     // Since we'll be getting the hashed password from the DB it
     // will be a string so we'll need to convert it to a byte slice
@@ -138,8 +148,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
 
           userCollection := session.DB(databaseName).C(userCollectionName)
-          userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
-          userSecretCollection := session.DB("feynmen_main_db").C("user_secrets")
+          //userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
+          // userSecretCollection := session.DB("feynmen_main_db").C("user_secrets")
 
           dberr := userCollection.Find(bson.M{"userid": user.UserID}).One(&user)
 
@@ -149,37 +159,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 //This will update the User struct with user id
                 user.UserTime() //updates user struct with time stamp at which the user is created
                 user.Generateuuid() //Updates the password with bcrypt of password
-
-
-                //Gnereatinh key pairs for the user
-                privateRSAKey, publicRSAKey := encryption.RsaKeyPair()
-
-                passphrase, perr := encryption.GenerateRandomString(32)
-
-                if perr != nil{
-                  log.Printf("Error in generating passphrase for encryption of private key %s", perr)
-                }
-
-                salt, salterr := encryption.GenerateRandomBytes(8)
-                if salterr != nil{
-                        log.Printf("Error in generating salt for encryption of private key %s", salterr)
-                  }
-
-
-                pemEncryptedPrivateRSAKey, _ := encryption.PrivateKeyToEncryptedPEM(privateRSAKey, passphrase) //encrypted Pem encoded string of privateRSA KEY
-                pemPublicRSAKey, _ :=  encryption.ExportRsaPublicKeyAsPemStr(publicRSAKey) //Pem encoded string of public RSAKey
-
-
-                privateECDSAKey, publicECDSAKey := encryption.GenerateECDSAKeys()
-
-                pemEncryptedPrivateECDSAKey, err := encryption.ECDSAToEncryptedPem(privateECDSAKey, passphrase) //encrypted Pem encode sting of privateECDSA KEY
-
-                pemPublicECDSAKey := encryption.PublicECDSAtoPEM(publicECDSAKey)//Pem encode sting of publicECDSA KEY
-
-                userKeys := encryption.UserKeys{user.UserID, pemPublicRSAKey, pemEncryptedPrivateRSAKey, pemPublicECDSAKey, pemEncryptedPrivateECDSAKey}
-
-                //BOIth passphrase and salt are base64 encoded strings
-                userSecrets := encryption.UserSecrets{user.UserID, salt, passphrase}
+                user.GeneratePassword()
 
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
 
@@ -189,6 +169,22 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 if err != nil {
                         panic(err)
                       }
+
+                Keys := encryption.BipKeys{}
+                entropy, _ := Keys.GenerateEntropy(256)
+                log.Printf("This is the entropy generated %s", entropy)
+
+                mnemonic, _ := Keys.GenerateMnemonic(entropy)
+                log.Printf("This is the menmonic generated %s", mnemonic)
+
+                passphrase, _ := Keys.GeneratePassphrase(16, 16)
+                log.Printf("This is the passphrase generated %s", hex.EncodeToString(passphrase))
+
+                seed := Keys.GenerateSeed(mnemonic, passphrase)
+                log.Printf("This is the seed generated %s", hex.EncodeToString(seed))
+
+                Keys.SplitMnemonic(mnemonic)
+                /*
                 err = userKeyCollection.Insert(&userKeys)
                 if err != nil {
                         panic(err)
@@ -198,7 +194,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 if err != nil {
                       panic(err)
                     }
-
+                  */
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
 
                 json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", user.UserID), false, true, nil})

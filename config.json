@@ -3,10 +3,21 @@
 {
     "Mongo": {
       "IP": "localhost:27017",
-      "DBname": "MainDB",
-      "userCollection": "Users",
+      "DBname": "main_db",
+      "userCollection": "users",
+      "secretOneColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_first"},
+      "secretTwoColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_second"},
+      "secretThreeColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_three"},
+      "secretFourthColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_fourth"},
       "Username": "FeynmenAdmin",
       "Password": "BIGwedding98"
 
-  }
+  },
+    "Encryption": {
+        "entropyByteLength": 256,
+        "saltBYteLength": 16,
+        "passphraseByteLength": 16
+
+    }
+
 }

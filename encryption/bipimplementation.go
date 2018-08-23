@@ -13,8 +13,9 @@ import (
     //"io"
     "log"
     	"encoding/hex"
-    "golang.org/x/crypto/ed25519"
-    "gitlab.com/mesha/Gofeynmen/encryption/edwards25519"
+      //"github.com/codahale/sss"
+"github.com/SSSaaS/Sssa-golang"
+
 )
 
 
@@ -48,6 +49,10 @@ type ChildPrivateKeyGenerator interface {
       GeneratePrivateChildKey(rootPulicKey *bip32.Key, childNumber uint32)(*bip32.Key, *bip32.Key, error)
 }
 
+type MnemonicSplitter interface {
+    SplitMnemonic(mnemonic string)([]string, error)
+}
+
 
 type HexKeyEncoder interface {
       HexKeyEncoding(extendedKey *bip32.Key)(string)
@@ -63,6 +68,7 @@ type BipKeyer interface{
     ChildPublicKeyGenerator
     ChildPrivateKeyGenerator
     HexKeyEncoder
+    MnemonicSplitter
 }
 
 
@@ -71,10 +77,11 @@ type BipKeys struct {
     Mnemonic string
     Passphrase []byte
     Seed []byte
-    SplitMnemonic []string
+    MnemonicShares []string
     RootPublicExtendedKey *bip32.Key
     RootPrivateExtendedKey *bip32.Key
     RootPrivateHexKey string
+
 }
 
 func(instance *BipKeys) GenerateEntropy(numberOfBytes int)([]byte, error){
@@ -87,7 +94,10 @@ func(instance *BipKeys) GenerateEntropy(numberOfBytes int)([]byte, error){
 
 func (instance *BipKeys) GenerateMnemonic(entropy []byte) (string, error){
     mnemonic, err := bip39.NewMnemonic(entropy)
-    instance.Mnemonic = mnemonic
+    if err != nil {
+        log.Printf("Some error in generating Mnemonic %s", err)
+
+}
     return mnemonic, err
 }
 
@@ -113,6 +123,7 @@ func (instance *BipKeys) GeneratePublicChildKey(rootPublicKey *bip32.Key, childN
         log.Printf("There is an error in creating %s key from private key", childNumber)
 
     }
+
     return key, err
 
 
@@ -127,6 +138,15 @@ func (instance *BipKeys) GeneratePrivateChildKey(rootPrivateKey *bip32.Key, chil
     return key, key.PublicKey(), err
 }
 
+
+
+func (instance *BipKeys) SplitMnemonic(mnemonic string)([]string, error){
+        keys, err := sssa.Create(3, 5, mnemonic)
+        log.Printf("These are the keys %s", keys[0])
+
+
+      return keys, err
+}
 
 func (instance *BipKeys) HexKeyEncoding(extendedKey *bip32.Key)(string){
       hexKey := hex.EncodeToString(extendedKey.Key)
@@ -193,26 +213,6 @@ func Bip32HexKey(key *bip32.Key) string{
 
 
 
-func Edwards25519PublicKey(privateKey []byte) []byte{
-    var A edwards25519.ExtendedGroupElement
-    var hBytes [32]byte
-    copy(hBytes[:], privateKey)
-   edwards25519.GeScalarMultBase(&A, &hBytes)
-   var publicKeyBytes [32]byte
-   A.ToBytes(&publicKeyBytes)
-
-   return publicKeyBytes[:]
-}
-
-
-func GetED25519keys(privateKey *bip32.Key)(string, string){
-    pvk := ed25519.PrivateKey(privateKey.Key)
-    log.Printf( "This is the ed25519 key %s", b64.StdEncoding.EncodeToString(pvk))
-    publicKey25519 := Edwards25519PublicKey(pvk)
-    log.Printf( "This is the ed25519 public key %s", b64.StdEncoding.EncodeToString(publicKey25519))
-    return b64.StdEncoding.EncodeToString(pvk), b64.StdEncoding.EncodeToString(publicKey25519)
-
-}
 
 
 

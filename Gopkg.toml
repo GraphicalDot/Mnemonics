@@ -31,6 +31,10 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/SSSaaS/sssa-golang"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/akamensky/base58"
 
 [[constraint]]
@@ -64,10 +68,6 @@
 [[constraint]]
   name = "github.com/tyler-smith/go-bip39"
   version = "1.0.0"
-
-[[constraint]]
-  branch = "master"
-  name = "gitlab.com/mesha/Gofeynmen"
 
 [[constraint]]
   branch = "master"

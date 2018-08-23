@@ -27,6 +27,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:1797cc1ccf5f617ed837e5d5252b4a7013decd13d8bf82cbb111e2e44fe42179"
+  name = "github.com/SSSaaS/sssa-golang"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d37d7782d75282e29cd0a208511f339bfc7eccb0"
+
+[[projects]]
+  branch = "master"
   digest = "1:370e346224764417ccb889946f5e0f1b13a65e7ac4a31ebd85f18cff9586c576"
   name = "github.com/akamensky/base58"
   packages = ["."]
@@ -40,6 +48,14 @@
   pruneopts = "UT"
   revision = "aabad6e819789e569bd6aabf444c935aa9ba1e44"
   version = "v0.5.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1aef73de1311816de8e3bb9a685e3096a7519db65e09c4461dc68c4c97fbec1e"
+  name = "github.com/codahale/sss"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0cb9f6d3f7f14abe7801e400be78df63f17db52d"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -114,21 +130,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:df915e07f01306364dff048a8fac76d4d67fe1fe6408ed304211cbbed59fd0dd"
-  name = "gitlab.com/mesha/Gofeynmen"
-  packages = ["encryption/edwards25519"]
-  pruneopts = "UT"
-  revision = "efc619024f2f8bff3523ea9e6151108283a2c931"
-
-[[projects]]
-  branch = "master"
-  digest = "1:073b04c98bb38b7d8fa80256d5a7fac5b14fd7d51bbeea78c939cd8b0eed1131"
+  digest = "1:ca2683a36e2d9aaeaf61874ce741e3a3a2df36263dac9b3ead4025f28c4cade9"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
     "blowfish",
-    "ed25519",
-    "ed25519/internal/edwards25519",
     "pbkdf2",
     "ripemd160",
     "scrypt",
@@ -156,8 +162,10 @@
   analyzer-version = 1
   input-imports = [
     "github.com/SSSaaS/Sssa-golang",
+    "github.com/SSSaaS/sssa-golang",
     "github.com/akamensky/base58",
     "github.com/bitly/go-simplejson",
+    "github.com/codahale/sss",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
@@ -165,9 +173,7 @@
     "github.com/skip2/go-qrcode",
     "github.com/tyler-smith/go-bip32",
     "github.com/tyler-smith/go-bip39",
-    "gitlab.com/mesha/Gofeynmen/encryption/edwards25519",
     "golang.org/x/crypto/bcrypt",
-    "golang.org/x/crypto/ed25519",
     "golang.org/x/crypto/pbkdf2",
     "golang.org/x/crypto/ripemd160",
     "golang.org/x/crypto/scrypt",
