@@ -1,0 +1,12 @@
+
+
+{
+    "Mongo": {
+      "IP": "localhost:27017",
+      "DBname": "MainDB",
+      "userCollection": "Users",
+      "Username": "FeynmenAdmin",
+      "Password": "BIGwedding98"
+
+  }
+}
