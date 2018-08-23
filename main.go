@@ -36,11 +36,16 @@ func main() {
 
 		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), Config: configfile}
 
+
 		//This function generates a random string everytime the app restarts,
 		// This is the jwt secret which will be encoded in JWT token
 		secret, _ := encryption.GenerateRandomString(32)
 		log.Printf("This is the secret %s", secret)
 		context.Config.Get("JWT").Set("secret", secret)
+
+		Database := context.Config.Get("Mongo").Get("DBname")
+
+		fmt.Printf("THis is the secret %s", Database)
 
 		fmt.Printf("THis is the secret %s", secret)
 

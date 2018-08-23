@@ -43,7 +43,8 @@ func(c *User) data() bool{
 func(c *User) UseridHash(){
   h := sha3.New256()
   h.Write([]byte(c.Email))
-  sha3_hash := hex.EncodeToString(h.Sum(nil))
+  _ = hex.EncodeToString(h.Sum(nil))
+
 }
 
 
@@ -57,11 +58,7 @@ func(c *User) UserTime(){
 
 
 func(c *User) Generateuuid() {
-  u2, err := uuid.NewV4()
-	if err != nil {
-		fmt.Printf("Something went wrong: %s", err)
-		return
-	}
+  u2 := uuid.NewV4()
   c.UserID = u2.String()
   return
 }
@@ -133,9 +130,14 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           session := appContext.Db.Copy()
           defer session.Close()
 
-          dbName, _ := *appContext.Config.Get("DBname").String()
+          databaseSettings:= *appContext.Config.Get("Mongo")
+          databaseName, _ := databaseSettings.Get("DBname").String()
+          userCollectionName, _ := databaseSettings.Get("userCollection").String()
 
-          userCollection := session.DB("feynmen_main_db").C("users")
+          log.Printf("This is the dbName %s", databaseName)
+
+
+          userCollection := session.DB(databaseName).C(userCollectionName)
           userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
           userSecretCollection := session.DB("feynmen_main_db").C("user_secrets")
 
@@ -145,9 +147,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
           if dberr != nil {
                 //This will update the User struct with user id
-                user.UseridHash()//Updates userid with hash of email
                 user.UserTime() //updates user struct with time stamp at which the user is created
-                user.HashAndSalt() //Updates the password with bcrypt of password
+                user.Generateuuid() //Updates the password with bcrypt of password
 
 
                 //Gnereatinh key pairs for the user
@@ -182,6 +183,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
 
+                log.Printf("This is the user %s", user)
 
                 err = userCollection.Insert(&user)
                 if err != nil {
