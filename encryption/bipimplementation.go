@@ -50,7 +50,7 @@ type ChildPrivateKeyGenerator interface {
 }
 
 type MnemonicSplitter interface {
-    SplitMnemonic(mnemonic string)([]string, error)
+    SplitMnemonic(number int, threshold int, mnemonic string)([]string, error)
 }
 
 
@@ -133,18 +133,14 @@ func (instance *BipKeys) GeneratePrivateChildKey(rootPrivateKey *bip32.Key, chil
     key, err := rootPrivateKey.NewChildKey(childNumber)
     if err!= nil{
         log.Printf("There is an error in creating %s key from private key", childNumber)
-
     }
     return key, key.PublicKey(), err
 }
 
 
 
-func (instance *BipKeys) SplitMnemonic(mnemonic string)([]string, error){
-        keys, err := sssa.Create(3, 5, mnemonic)
-        log.Printf("These are the keys %s", keys[0])
-
-
+func (instance *BipKeys) SplitMnemonic(number int, threshold int, mnemonic string)([]string, error){
+      keys, err := sssa.Create(threshold, number, mnemonic)
       return keys, err
 }
 

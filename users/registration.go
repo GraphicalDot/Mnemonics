@@ -13,7 +13,6 @@ import (
     "gopkg.in/mgo.v2/bson"
 
     "golang.org/x/crypto/bcrypt"
-    "golang.org/x/crypto/sha3"
     "gitlab.com/mesha/Mnemonics/appsettings"
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
@@ -25,7 +24,7 @@ import (
 //This is a struct method on struct User which checks the struct variables
 // provided by the post requests on user registration
 
-func(c *User) data() bool{
+func(c *UserStruct) data() bool{
   if c.Email == ""{
         fmt.Println("Problem with Password")
         return false
@@ -38,27 +37,17 @@ func(c *User) data() bool{
 
 }
 
-//This is the struct method which adds useid on the basis of sha3_256 to the
-//struct User
-func(c *User) UseridHash(){
-  h := sha3.New256()
-  h.Write([]byte(c.Email))
-  _ = hex.EncodeToString(h.Sum(nil))
-
-}
-
-
 //This si the struct method which adds useid on the basis of sha3_256 to the
 //struct User
-func(c *User) UserTime(){
+func(c *UserStruct) UserTime(){
     loc, _ := time.LoadLocation("Asia/Kolkata")
     c.CreatedAt = time.Now().In(loc)
     return
 }
 
 
-func(c *User) Generateuuid() {
-  u2 := uuid.NewV4()
+func(c *UserStruct) Generateuuid() {
+  u2, _ := uuid.NewV4()
   c.UserID = u2.String()
   return
 }
@@ -66,7 +55,7 @@ func(c *User) Generateuuid() {
 
 
 
-func (c *User) HashAndSalt() {
+func (c *UserStruct) HashAndSalt() {
     // Use GenerateFromPassword to hash & salt pwd.
     // MinCost is just an integer constant provided by the bcrypt
     // package along with DefaultCost & MaxCost.
@@ -79,35 +68,21 @@ func (c *User) HashAndSalt() {
     // GenerateFromPassword returns a byte slice so we need to
     // convert the bytes to a string and return it
     log.Printf("This is the bcrypt hash implementation of the password %s", string(hash))
-    c.Password = string(hash)
+    c.Password = hash
     return
 }
 
-func (c *User) GeneratePassword(){
+func (c *UserStruct) GeneratePassword(){
     password, err := encryption.GenerateScryptKey(8, 8)
     if err != nil {
           log.Printf("There is an error generating the password %s", err)
     }
     log.Printf("This is the password %s", hex.EncodeToString(password))
 
-    c.Password = hex.EncodeToString(password)
+    c.Password = password
 }
 
-func (c *User) ComparePasswords(plainPassword string) bool {
-    // Since we'll be getting the hashed password from the DB it
-    // will be a string so we'll need to convert it to a byte slice
-    //plainPwd will also be a string
-    fmt.Printf("This is the plain user password %s", plainPassword)
-    plainPwd := []byte(plainPassword)
-    byteHash := []byte(c.Password)
-    err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
-    if err != nil {
-        log.Printf("Passwords didnt match %s", err)
-        return false
-    }
 
-    return true
-}
 
 
 
@@ -124,15 +99,16 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
           //Creating an instance of User struct and Unmarshalling incoming
           // json into the User staruct instance
-          var user User
-          err = json.Unmarshal(data, &user) //address needs to be passed, If you wont pass a pointer,
+          var userStruct  UserStruct
+          log.Printf("THis is the empty user %s", userStruct)
+          err = json.Unmarshal(data, &userStruct) //address needs to be passed, If you wont pass a pointer,
                                             // A copy will be created
           if err != nil {
               panic(err.Error())
                }
 
           //Creating a new instance of response object so that response can be returned in JSON
-          if user.data() == false{
+          if userStruct.data() == false{
             json.NewEncoder(w).Encode(&appsettings.AppResponse{"Missing parameters",
                     false, true, nil})
             return http.StatusNotAcceptable, errors.New("Error in POst parameteres")
@@ -143,32 +119,27 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           databaseSettings:= *appContext.Config.Get("Mongo")
           databaseName, _ := databaseSettings.Get("DBname").String()
           userCollectionName, _ := databaseSettings.Get("userCollection").String()
+          secretCollectionName, _ := databaseSettings.Get("secretCollection").String()
 
           log.Printf("This is the dbName %s", databaseName)
 
 
           userCollection := session.DB(databaseName).C(userCollectionName)
           //userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
-          // userSecretCollection := session.DB("feynmen_main_db").C("user_secrets")
+          secretCollection := session.DB(databaseName).C(secretCollectionName)
 
-          dberr := userCollection.Find(bson.M{"userid": user.UserID}).One(&user)
+          dberr := userCollection.Find(bson.M{"email": userStruct.Email}).One(&userStruct)
 
 
 
           if dberr != nil {
                 //This will update the User struct with user id
-                user.UserTime() //updates user struct with time stamp at which the user is created
-                user.Generateuuid() //Updates the password with bcrypt of password
-                user.GeneratePassword()
+                userStruct.UserTime() //updates user struct with time stamp at which the user is created
+                userStruct.Generateuuid() //Updates the password with bcrypt of password
+                userStruct.GeneratePassword()
 
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
 
-                log.Printf("This is the user %s", user)
-
-                err = userCollection.Insert(&user)
-                if err != nil {
-                        panic(err)
-                      }
 
                 Keys := encryption.BipKeys{}
                 entropy, _ := Keys.GenerateEntropy(256)
@@ -180,27 +151,51 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 passphrase, _ := Keys.GeneratePassphrase(16, 16)
                 log.Printf("This is the passphrase generated %s", hex.EncodeToString(passphrase))
 
-                seed := Keys.GenerateSeed(mnemonic, passphrase)
+                //Using empty string as the passphrase for generating Mnemonic from the Seed
+                seed := Keys.GenerateSeed(mnemonic, nil)
                 log.Printf("This is the seed generated %s", hex.EncodeToString(seed))
 
-                Keys.SplitMnemonic(mnemonic)
+                splitShares, err := Keys.SplitMnemonic(6, 3, mnemonic)
+                if err != nil{
+                    log.Printf("These are the splitshares %s", splitShares)
+                }
+
+
+                encryptedKeys := make([][]byte, len(splitShares)/2)
+
+                for index, splitKey := range splitShares[0:3] {
+                    encryptedKeys[index], err = encryption.AESEncryption(userStruct.Password, []byte(splitKey))
+                    if err != nil{
+                        log.Printf("Error occurred in encrypting SplitKeys %s", err)
+                  }}
+
+
+                  err = userCollection.Insert(&userStruct)
+                  if err != nil {
+                          panic(err)
+                        }
+
+                  err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
+                                                        "secret_two": encryptedKeys[1],
+                                                      "secret_three": encryptedKeys[2]})
+                        if err != nil {
+                              panic(err)
+                            }
+
                 /*
                 err = userKeyCollection.Insert(&userKeys)
                 if err != nil {
                         panic(err)
                       }
 
-                err = userSecretCollection.Insert(&userSecrets)
-                if err != nil {
-                      panic(err)
-                    }
+
                   */
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
 
-                json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", user.UserID), false, true, nil})
+                json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, nil})
                 return http.StatusOK, nil
               }else {
-                json.NewEncoder(w).Encode(&appsettings.AppResponse{"Choose a different username", true, false, nil})
+                json.NewEncoder(w).Encode(&appsettings.AppResponse{"Email id has already been registered with us ", true, false, nil})
                 return http.StatusUnauthorized, nil
             }
 }

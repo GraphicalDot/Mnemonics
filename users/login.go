@@ -78,7 +78,7 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
 
 
         c := session.DB("feynmen_main_db").C("users")
-        user := new(User)
+        user := new(UserStruct)
         dberr := c.Find(bson.M{"userid": userCredentials.UserID}).One(&user)
 
 
@@ -87,13 +87,6 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
           json.NewEncoder(w).Encode(&appsettings.AppResponse{"User doesnt exists", true, false, nil})
           return http.StatusOK, nil
             }
-
-        passwordmatch := user.ComparePasswords(*userCredentials.Password)
-        if !passwordmatch{
-          json.NewEncoder(w).Encode(&appsettings.AppResponse{"Invalid credentials", true, false, nil})
-          return http.StatusOK, nil
-
-        }
 
 
 

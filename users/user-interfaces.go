@@ -17,8 +17,8 @@ type Response struct{
 
 
 
-type User struct{
-    Password string `json:"password"`
+type UserStruct struct{
+    Password []byte `json:"password"`
     UserID string `json:"userid"`
     Address string `json:"address"`
     Email string `json:"email"`
@@ -26,7 +26,26 @@ type User struct{
     PhoneNumber string `json:"phonenumber"`
     PanCard string `json:"pancard"`
     Details map[string]string `json:"details"`
+
 }
+
+type SecretsStruct struct {
+  UserID string `json:"userid"`
+  secretOne []byte `json:secret_one`
+  secretTwo []byte `json:secret_two`
+  secretThree []byte `json:secret_three`
+}
+
+type HSMSecretsStruct struct {
+  UserID string `json:"userid"`
+  secretFour []byte `json:secret_four`
+  secretFive []byte `json:secret_five`
+  secretSix []byte `json:secret_six`
+}
+
+
+
+
 
 type Credentials struct{
     UserID *string `json:"username"`
