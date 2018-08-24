@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/handlers"
@@ -27,11 +28,34 @@ func TestHandler(c *appsettings.AppContext, w http.ResponseWriter, req *http.Req
 
 func main() {
 
+		log.Printf("TEsting AES encryption and Decryption")
+		aesKey, err := encryption.GenerateScryptKey(8, 8)
+		if err != nil {
+					log.Printf("There is an error generating the password %s", err)
+		}
+		log.Printf("This is the AES Key %s", hex.EncodeToString(aesKey))
+		plainText := "I am the smartest person alive, I will become what i deserve"
+		log.Printf("THis is the text for operation %s", plainText)
+
+		cipherText, err := encryption.AESEncryption(aesKey, []byte(plainText))
+		log.Printf("CipherText bytes :: %s", cipherText)
+		log.Printf("Hex Encoded CipherText :: %s", hex.EncodeToString(cipherText))
+
+		decryptedText, err := encryption.DecryptBlock(cipherText, aesKey)
+
+		if err != nil{
+			log.Printf("error occurred in Decrypting CipherText :: %s", err)
+
+
+		}
+
+		log.Printf("Decrypted CipherText :: %s", decryptedText)
+
+
 		//file, fileerror := os.Open("settings/config.json")
 
 		j, _ := ioutil.ReadFile("config.json")
 		configfile, _ := simplejson.NewFromReader(bytes.NewReader(j))
-		fmt.Println(configfile)
 		router := mux.NewRouter()
 
 		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), Config: configfile}
@@ -40,14 +64,8 @@ func main() {
 		//This function generates a random string everytime the app restarts,
 		// This is the jwt secret which will be encoded in JWT token
 		secret, _ := encryption.GenerateRandomString(32)
-		log.Printf("This is the secret %s", secret)
 		context.Config.Get("JWT").Set("secret", secret)
 
-		Database := context.Config.Get("Mongo").Get("DBname")
-
-		fmt.Printf("THis is the secret %s", Database)
-
-		fmt.Printf("THis is the secret %s", secret)
 
 		fmt.Println("Starting the application...")
 
