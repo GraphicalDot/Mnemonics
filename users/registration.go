@@ -15,7 +15,6 @@ import (
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
     "github.com/satori/go.uuid"
-"golang.org/x/crypto/blake2b"
 
 )
 
@@ -81,58 +80,7 @@ func (c *UserStruct) GeneratePassword(){
 }
 
 
-func (c *SecretsStruct) SetSecrets(userId string, encryptedKeys [][]byte){
-    c.UserID = userId
-    c.SecretOne = hex.EncodeToString(encryptedKeys[0])
-    c.SecretTwo = hex.EncodeToString(encryptedKeys[1])
-    c.SecretThree = hex.EncodeToString(encryptedKeys[2])
-    log.Printf("This is the c %s", c)
-}
 
-
-func (c *SecretsStruct) InsertDb(){
-
-
-}
-
-
-
-func (c *HSMSecretsStruct) SetEncryptionKey(){
-  aesKey, err := encryption.GenerateScryptKey(8, 8)
-  if err != nil {
-        log.Printf("There is an error generating the AES key for encryption SharedKeys%s", err)
-  }
-  c.AESKey = hex.EncodeToString(aesKey)
-}
-
-
-
-func (c *HSMSecretsStruct) SetUserIdHash(userid string) {
-    hasher, _ := blake2b.New256([]byte(userid))
-    hash := hasher.Sum(nil)
-    c.UseridHash = hex.EncodeToString(hash)
-}
-
-
-func (c *HSMSecretsStruct) SetEncryptedSecrets(splitKeys []string){
-    encryptedKeys := make([][]byte, len(splitKeys))
-
-    decodeAesKey, decodeErr := hex.DecodeString(c.AESKey)
-    if decodeErr != nil{
-        fmt.Printf("There is an error decoding the HSMAES Key %s", decodeErr)
-    }
-
-    var err error
-    for index, splitKey := range splitKeys {
-        encryptedKeys[index], err = encryption.AESEncryption(decodeAesKey, []byte(splitKey))
-        if err != nil{
-            log.Printf("Error occurred in encrypting SplitKeys %s", err)
-      }}
-    c.SecretFour = hex.EncodeToString(encryptedKeys[0])
-    c.SecretFive = hex.EncodeToString(encryptedKeys[1])
-    c.SecretSix = hex.EncodeToString(encryptedKeys[2])
-    log.Printf("This is the c %s", c)
-}
 
 
 
@@ -214,29 +162,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                     log.Printf("These are the splitshares %s", splitShares)
                 }
 
-
-                encryptedKeys := make([][]byte, len(splitShares)/2)
-
-                decodePassword, decodeErr := hex.DecodeString(userStruct.Password)
-                if decodeErr != nil{
-                    log.Printf("There is an error decoding the hex password %s", decodeErr)
-                }
-
-
-                for index, splitKey := range splitShares[0:3] {
-                    encryptedKeys[index], err = encryption.AESEncryption(decodePassword, []byte(splitKey))
-                    if err != nil{
-                        log.Printf("Error occurred in encrypting SplitKeys %s", err)
-                  }}
-
-
-                  err = userCollection.Insert(userStruct)
-                  if err != nil {
-                          panic(err)
-                        }
-
                   g := SecretsStruct{}
-                  g.SetSecrets(userStruct.UserID, encryptedKeys)
+                  g.SetEncryptedSecrets(userStruct.Password, userStruct.UserID, splitShares[0:3 ] )
                   log.Printf("This is the g %s", g)
                   //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
                   //                                      "secret_two": encryptedKeys[1],
@@ -250,6 +177,13 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                   hsmKeys.SetEncryptionKey()
                   hsmKeys.SetUserIdHash(userStruct.UserID)
                   hsmKeys.SetEncryptedSecrets(splitShares[3:])
+
+                  err = userCollection.Insert(userStruct)
+                  if err != nil {
+                          panic(err)
+                        }
+
+
 
                 err = hsmSecretCollection.Insert(&hsmKeys)
                 if err != nil {
