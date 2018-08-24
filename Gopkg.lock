@@ -27,14 +27,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1797cc1ccf5f617ed837e5d5252b4a7013decd13d8bf82cbb111e2e44fe42179"
-  name = "github.com/SSSaaS/sssa-golang"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "d37d7782d75282e29cd0a208511f339bfc7eccb0"
-
-[[projects]]
-  branch = "master"
   digest = "1:370e346224764417ccb889946f5e0f1b13a65e7ac4a31ebd85f18cff9586c576"
   name = "github.com/akamensky/base58"
   packages = ["."]
@@ -48,14 +40,6 @@
   pruneopts = "UT"
   revision = "aabad6e819789e569bd6aabf444c935aa9ba1e44"
   version = "v0.5.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1aef73de1311816de8e3bb9a685e3096a7519db65e09c4461dc68c4c97fbec1e"
-  name = "github.com/codahale/sss"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0cb9f6d3f7f14abe7801e400be78df63f17db52d"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -130,10 +114,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ca2683a36e2d9aaeaf61874ce741e3a3a2df36263dac9b3ead4025f28c4cade9"
+  digest = "1:9fd6c6fceb0cf367d29fc581d2ccc548f1660a7929a4f86bd3e8e9dbc2f858be"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
+    "blake2b",
     "blowfish",
     "pbkdf2",
     "ripemd160",
@@ -142,6 +127,14 @@
   ]
   pruneopts = "UT"
   revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+
+[[projects]]
+  branch = "master"
+  digest = "1:8392490b249a3602a13813be12324d3b16eca044ae185ff32cdd9e267706e208"
+  name = "golang.org/x/sys"
+  packages = ["cpu"]
+  pruneopts = "UT"
+  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
 
 [[projects]]
   branch = "v2"
@@ -162,10 +155,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/SSSaaS/Sssa-golang",
-    "github.com/SSSaaS/sssa-golang",
     "github.com/akamensky/base58",
     "github.com/bitly/go-simplejson",
-    "github.com/codahale/sss",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
@@ -174,6 +165,7 @@
     "github.com/tyler-smith/go-bip32",
     "github.com/tyler-smith/go-bip39",
     "golang.org/x/crypto/bcrypt",
+    "golang.org/x/crypto/blake2b",
     "golang.org/x/crypto/pbkdf2",
     "golang.org/x/crypto/ripemd160",
     "golang.org/x/crypto/scrypt",

@@ -9,15 +9,13 @@ import (
     "io/ioutil"
     "encoding/hex"
     "time"
-    "errors"
     "gopkg.in/mgo.v2/bson"
-
     "golang.org/x/crypto/bcrypt"
     "gitlab.com/mesha/Mnemonics/appsettings"
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
     "github.com/satori/go.uuid"
-
+"golang.org/x/crypto/blake2b"
 
 )
 
@@ -47,7 +45,7 @@ func(c *UserStruct) UserTime(){
 
 
 func(c *UserStruct) Generateuuid() {
-  u2, _ := uuid.NewV4()
+  u2 := uuid.NewV4()
   c.UserID = u2.String()
   return
 }
@@ -68,7 +66,7 @@ func (c *UserStruct) HashAndSalt() {
     // GenerateFromPassword returns a byte slice so we need to
     // convert the bytes to a string and return it
     log.Printf("This is the bcrypt hash implementation of the password %s", string(hash))
-    c.Password = hash
+    c.Password = hex.EncodeToString(hash)
     return
 }
 
@@ -79,9 +77,62 @@ func (c *UserStruct) GeneratePassword(){
     }
     log.Printf("This is the password %s", hex.EncodeToString(password))
 
-    c.Password = password
+    c.Password = hex.EncodeToString(password)
 }
 
+
+func (c *SecretsStruct) SetSecrets(userId string, encryptedKeys [][]byte){
+    c.UserID = userId
+    c.SecretOne = hex.EncodeToString(encryptedKeys[0])
+    c.SecretTwo = hex.EncodeToString(encryptedKeys[1])
+    c.SecretThree = hex.EncodeToString(encryptedKeys[2])
+    log.Printf("This is the c %s", c)
+}
+
+
+func (c *SecretsStruct) InsertDb(){
+
+
+}
+
+
+
+func (c *HSMSecretsStruct) SetEncryptionKey(){
+  aesKey, err := encryption.GenerateScryptKey(8, 8)
+  if err != nil {
+        log.Printf("There is an error generating the AES key for encryption SharedKeys%s", err)
+  }
+  c.AESKey = hex.EncodeToString(aesKey)
+}
+
+
+
+func (c *HSMSecretsStruct) SetUserIdHash(userid string) {
+    hasher, _ := blake2b.New256([]byte(userid))
+    hash := hasher.Sum(nil)
+    c.UseridHash = hex.EncodeToString(hash)
+}
+
+
+func (c *HSMSecretsStruct) SetEncryptedSecrets(splitKeys []string){
+    encryptedKeys := make([][]byte, len(splitKeys))
+
+    decodeAesKey, decodeErr := hex.DecodeString(c.AESKey)
+    if decodeErr != nil{
+        fmt.Printf("There is an error decoding the HSMAES Key %s", decodeErr)
+    }
+
+    var err error
+    for index, splitKey := range splitKeys {
+        encryptedKeys[index], err = encryption.AESEncryption(decodeAesKey, []byte(splitKey))
+        if err != nil{
+            log.Printf("Error occurred in encrypting SplitKeys %s", err)
+      }}
+    c.SecretFour = hex.EncodeToString(encryptedKeys[0])
+    c.SecretFive = hex.EncodeToString(encryptedKeys[1])
+    c.SecretSix = hex.EncodeToString(encryptedKeys[2])
+    log.Printf("This is the c %s", c)
+}
 
 
 
@@ -100,7 +151,6 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           //Creating an instance of User struct and Unmarshalling incoming
           // json into the User staruct instance
           var userStruct  UserStruct
-          log.Printf("THis is the empty user %s", userStruct)
           err = json.Unmarshal(data, &userStruct) //address needs to be passed, If you wont pass a pointer,
                                             // A copy will be created
           if err != nil {
@@ -109,9 +159,10 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
           //Creating a new instance of response object so that response can be returned in JSON
           if userStruct.data() == false{
-            json.NewEncoder(w).Encode(&appsettings.AppResponse{"Missing parameters",
+                  fmt.Println("Incomplete json data")
+                  json.NewEncoder(w).Encode(&appsettings.AppResponse{"Missing parameters",
                     false, true, nil})
-            return http.StatusNotAcceptable, errors.New("Error in POst parameteres")
+                  return http.StatusUnauthorized, nil
           }
           session := appContext.Db.Copy()
           defer session.Close()
@@ -121,12 +172,15 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           userCollectionName, _ := databaseSettings.Get("userCollection").String()
           secretCollectionName, _ := databaseSettings.Get("secretCollection").String()
 
+          hsmKeysCollectionName, _ := databaseSettings.Get("hsmKeysCollection").String()
+
           log.Printf("This is the dbName %s", databaseName)
 
 
           userCollection := session.DB(databaseName).C(userCollectionName)
           //userKeyCollection := session.DB("feynmen_main_db").C("user_keys")
           secretCollection := session.DB(databaseName).C(secretCollectionName)
+          hsmSecretCollection := session.DB(databaseName).C(hsmKeysCollectionName)
 
           dberr := userCollection.Find(bson.M{"email": userStruct.Email}).One(&userStruct)
 
@@ -144,8 +198,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 Keys := encryption.BipKeys{}
                 entropy, _ := Keys.GenerateEntropy(256)
                 log.Printf("This is the entropy generated %s", entropy)
-
                 mnemonic, _ := Keys.GenerateMnemonic(entropy)
+
                 log.Printf("This is the menmonic generated %s", mnemonic)
 
                 passphrase, _ := Keys.GeneratePassphrase(16, 16)
@@ -163,36 +217,49 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                 encryptedKeys := make([][]byte, len(splitShares)/2)
 
+                decodePassword, decodeErr := hex.DecodeString(userStruct.Password)
+                if decodeErr != nil{
+                    log.Printf("There is an error decoding the hex password %s", decodeErr)
+                }
+
+
                 for index, splitKey := range splitShares[0:3] {
-                    encryptedKeys[index], err = encryption.AESEncryption(userStruct.Password, []byte(splitKey))
+                    encryptedKeys[index], err = encryption.AESEncryption(decodePassword, []byte(splitKey))
                     if err != nil{
                         log.Printf("Error occurred in encrypting SplitKeys %s", err)
                   }}
 
 
-                  err = userCollection.Insert(&userStruct)
+                  err = userCollection.Insert(userStruct)
                   if err != nil {
                           panic(err)
                         }
 
-                  err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
-                                                        "secret_two": encryptedKeys[1],
-                                                      "secret_three": encryptedKeys[2]})
-                        if err != nil {
+                  g := SecretsStruct{}
+                  g.SetSecrets(userStruct.UserID, encryptedKeys)
+                  log.Printf("This is the g %s", g)
+                  //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
+                  //                                      "secret_two": encryptedKeys[1],
+                  //                                    "secret_three": encryptedKeys[2]})
+                  err = secretCollection.Insert(g)
+                  if err != nil {
                               panic(err)
-                            }
+                           }
 
-                /*
-                err = userKeyCollection.Insert(&userKeys)
+                  hsmKeys := HSMSecretsStruct{}
+                  hsmKeys.SetEncryptionKey()
+                  hsmKeys.SetUserIdHash(userStruct.UserID)
+                  hsmKeys.SetEncryptedSecrets(splitShares[3:])
+
+                err = hsmSecretCollection.Insert(&hsmKeys)
                 if err != nil {
                         panic(err)
                       }
 
 
-                  */
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
 
-                json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, nil})
+              json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, nil})
                 return http.StatusOK, nil
               }else {
                 json.NewEncoder(w).Encode(&appsettings.AppResponse{"Email id has already been registered with us ", true, false, nil})

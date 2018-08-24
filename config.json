@@ -6,6 +6,7 @@
       "DBname": "main_db",
       "userCollection": "users",
       "secretCollection": "secrets",
+      "hsmKeysCollection": "hsm_aes_keys",
       "secretOneColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_first"},
       "secretTwoColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_second"},
       "secretThreeColl": {"ip": "localhost", "port": 27017, "DBname": "main_db", "CollectionName": "secret_three"},
