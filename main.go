@@ -14,6 +14,7 @@ import (
 	"gitlab.com/mesha/Mnemonics/users"
 	"io/ioutil"
 	"log"
+	    "github.com/davecgh/go-spew/spew"
 	"net/http"
 	"os"
 )
@@ -29,7 +30,11 @@ func TestHandler(c *appsettings.AppContext, w http.ResponseWriter, req *http.Req
 func main() {
 
 		log.Printf("TEsting AES encryption and Decryption")
-		aesKey, err := encryption.GenerateScryptKey(8, 8)
+		salt := encryption.GenerateRandomSalt(8)
+    passphrase := encryption.GenerateRandomString(8)
+
+    aesKey, err := encryption.GenerateScryptKey(salt, []byte(passphrase))
+
 		if err != nil {
 					log.Printf("There is an error generating the password %s", err)
 		}
@@ -49,6 +54,7 @@ func main() {
 
 		}
 
+		spew.Dump(decryptedText)
 		log.Printf("Decrypted CipherText :: %s", decryptedText)
 
 
@@ -63,7 +69,7 @@ func main() {
 
 		//This function generates a random string everytime the app restarts,
 		// This is the jwt secret which will be encoded in JWT token
-		secret, _ := encryption.GenerateRandomString(32)
+		secret := encryption.GenerateRandomString(32)
 		context.Config.Get("JWT").Set("secret", secret)
 
 
@@ -77,6 +83,9 @@ func main() {
 
 		RegistrationContextHandler := &appsettings.ContextHandler{&context, users.UserRegistration}
 		router.Methods("POST").Path("/registration").Name("Registration").Handler(RegistrationContextHandler)
+
+		GetKeysContextHandler := &appsettings.ContextHandler{&context, users.GetKeys}
+		router.Methods("POST").Path("/getkeys").Name("Getkeys").Handler(GetKeysContextHandler)
 
 		MnemonicContextHandler := &appsettings.ContextHandler{&context, encryption.GenerateMnemonic}
 		mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)

@@ -32,7 +32,6 @@ type UserKeys struct{
 
 }
 
-
 type UserSecrets struct {
     UserId string `json:"userid"`
     EncryptionSalt string `json:"encryption_salt"`
@@ -74,15 +73,15 @@ func GenerateRandomBytes(n int) (string, error) {
 // It will return an error if the system's secure random
 // number generator fails to function correctly, in which
 // case the caller should not continue.
-func GenerateRandomString(length int) (string, error) {
+func GenerateRandomString(length int) (string) {
       result := ""
     for {
     if len(result) >= length {
-      return  base64.StdEncoding.EncodeToString([]byte(result)), nil
+      return  base64.StdEncoding.EncodeToString([]byte(result))
     }
     num, err := rand.Int(rand.Reader, big.NewInt(int64(127)))
     if err != nil {
-      return "", err
+        panic(err)
     }
     n := num.Int64()
     // Make sure that the number/byte/letter is inside
@@ -94,21 +93,32 @@ func GenerateRandomString(length int) (string, error) {
 }
 
 
+func GenerateRandomSalt(numberOfBytes int)[]byte {
+  nBig, err := rand.Int(rand.Reader, big.NewInt(27))
+    if err != nil {
+        panic(err)
+    }
+    n := nBig.Int64()
+    log.Printf("Here is a random %T in [0,27) : %d\n", n, n)
+    salt := make([]byte, numberOfBytes)
+    _, err = rand.Read(salt)
+  // Note that err == nil only if we read len(b) bytes.
+  if err != nil {
+    panic(err)
+  }
 
-func GenerateScryptKey(saltBytes int, passphraseBytes int)([]byte, error){
+  return salt
+}
 
 
+
+
+
+
+
+func GenerateScryptKey(saltBytes []byte, passphraseBytes []byte)([]byte, error){
       //entropy, _ := bip39.NewEntropy(256)
-
-      salt := make([]byte, saltBytes)
-      _, err := rand.Read(salt)
-      // Note that err == nil only if we read len(b) bytes.
-      if err != nil {
-        return nil, err
-      }
-
-      b64salt, err := GenerateRandomBytes(passphraseBytes)
-      dk, err := scrypt.Key([]byte(b64salt), salt, 32768, 8, 1, 32)
+      dk, err := scrypt.Key(passphraseBytes, saltBytes, 32768, 8, 1, 32)
       return dk, err
 
 }
@@ -125,7 +135,7 @@ func GeneratePBKFD2key() ([]byte, error) {
 
     //Thsi generates a random pbkdf2 key from the rndom string generated
     // from the GenerateRandomString function mentioned in encryption package
-    secret, _ := GenerateRandomString(32)
+    secret := GenerateRandomString(32)
     log.Printf("This is the secret %s", secret)
 
     salt, err := base64.StdEncoding.DecodeString(b64salt)

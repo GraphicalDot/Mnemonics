@@ -10,7 +10,7 @@ import (
     "encoding/hex"
     "time"
     "gopkg.in/mgo.v2/bson"
-    "golang.org/x/crypto/bcrypt"
+    _ "golang.org/x/crypto/bcrypt"
     "gitlab.com/mesha/Mnemonics/appsettings"
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
@@ -51,37 +51,18 @@ func(c *UserStruct) Generateuuid() {
 
 
 
+func (c *UserStruct) GeneratePassword() string {
+    salt := encryption.GenerateRandomSalt(8)
+    passphrase := encryption.GenerateRandomString(8)
 
-func (c *UserStruct) HashAndSalt() {
-    // Use GenerateFromPassword to hash & salt pwd.
-    // MinCost is just an integer constant provided by the bcrypt
-    // package along with DefaultCost & MaxCost.
-    // The cost can be any value you want provided it isn't lower
-    // than the MinCost (4)
-    hash, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.MinCost)
-    if err != nil {
-        log.Println(err)
-    }
-    // GenerateFromPassword returns a byte slice so we need to
-    // convert the bytes to a string and return it
-    log.Printf("This is the bcrypt hash implementation of the password %s", string(hash))
-    c.Password = hex.EncodeToString(hash)
-    return
-}
-
-func (c *UserStruct) GeneratePassword(){
-    password, err := encryption.GenerateScryptKey(8, 8)
+    password, err := encryption.GenerateScryptKey(salt, []byte(passphrase))
     if err != nil {
           log.Printf("There is an error generating the password %s", err)
+          panic(err)
     }
     log.Printf("This is the password %s", hex.EncodeToString(password))
-
-    c.Password = hex.EncodeToString(password)
+    return hex.EncodeToString(password)
 }
-
-
-
-
 
 
 
@@ -138,33 +119,34 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 //This will update the User struct with user id
                 userStruct.UserTime() //updates user struct with time stamp at which the user is created
                 userStruct.Generateuuid() //Updates the password with bcrypt of password
-                userStruct.GeneratePassword()
+                userPassword := userStruct.GeneratePassword()
 
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
 
 
                 Keys := encryption.BipKeys{}
                 entropy, _ := Keys.GenerateEntropy(256)
-                log.Printf("This is the entropy generated %s", entropy)
+                //log.Printf("This is the entropy generated %s", entropy)
                 mnemonic, _ := Keys.GenerateMnemonic(entropy)
 
-                log.Printf("This is the menmonic generated %s", mnemonic)
+                //log.Printf("This is the menmonic generated %s", mnemonic)
 
-                passphrase, _ := Keys.GeneratePassphrase(16, 16)
-                log.Printf("This is the passphrase generated %s", hex.EncodeToString(passphrase))
+                //passphrase, _ := Keys.GeneratePassphrase(16, 16)
+                //log.Printf("This is the passphrase generated %s", hex.EncodeToString(passphrase))
 
                 //Using empty string as the passphrase for generating Mnemonic from the Seed
-                seed := Keys.GenerateSeed(mnemonic, nil)
-                log.Printf("This is the seed generated %s", hex.EncodeToString(seed))
+                //seed := Keys.GenerateSeed(mnemonic, nil)
+                //log.Printf("This is the seed generated %s", hex.EncodeToString(seed))
 
                 splitShares, err := Keys.SplitMnemonic(6, 3, mnemonic)
                 if err != nil{
                     log.Printf("These are the splitshares %s", splitShares)
                 }
 
+
                   g := SecretsStruct{}
-                  g.SetEncryptedSecrets(userStruct.Password, userStruct.UserID, splitShares[0:3 ] )
-                  log.Printf("This is the g %s", g)
+                  g.SetEncryptedSecrets(userPassword, userStruct.UserID, splitShares[0:3 ] )
+                  //log.Printf("This is the g %s", g)
                   //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
                   //                                      "secret_two": encryptedKeys[1],
                   //                                    "secret_three": encryptedKeys[2]})
@@ -192,8 +174,9 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
 
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
+              response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, map[string]interface{}{"password": userPassword, "user_id": userStruct.UserID}}
 
-              json.NewEncoder(w).Encode(&appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, nil})
+              json.NewEncoder(w).Encode(response)
                 return http.StatusOK, nil
               }else {
                 json.NewEncoder(w).Encode(&appsettings.AppResponse{"Email id has already been registered with us ", true, false, nil})

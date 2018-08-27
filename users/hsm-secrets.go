@@ -19,7 +19,10 @@ import (
 
 
 func (c *HSMSecretsStruct) SetEncryptionKey(){
-  aesKey, err := encryption.GenerateScryptKey(8, 8)
+  salt := encryption.GenerateRandomSalt(8)
+  passphrase := encryption.GenerateRandomString(8)
+
+  aesKey, err := encryption.GenerateScryptKey(salt, []byte(passphrase))
   if err != nil {
         log.Printf("There is an error generating the AES key for encryption SharedKeys%s", err)
   }

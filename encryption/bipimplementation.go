@@ -102,8 +102,11 @@ func (instance *BipKeys) GenerateMnemonic(entropy []byte) (string, error){
 }
 
 func (instance *BipKeys) GeneratePassphrase(saltBytes int, passphraseBytes int) ([]byte, error){
-      passphrase, err := GenerateScryptKey(saltBytes, passphraseBytes)
-      return passphrase, err
+    salt := GenerateRandomSalt(8)
+    passphrase := GenerateRandomString(8)
+
+    password, err := GenerateScryptKey(salt, []byte(passphrase))
+      return password, err
 }
 
 func (instance *BipKeys) GenerateSeed(mnemonic string, passphrase []byte) ([]byte){
@@ -169,7 +172,7 @@ func NewMnemonic()(string) {
 
 
 func NewSeed(mnemonic string)(string, []byte) {
-    passphrase, _ := GenerateRandomString(32)
+    passphrase := GenerateRandomString(32)
     seed := bip39.NewSeed(mnemonic, passphrase)
     return passphrase, seed
 }

@@ -27,7 +27,7 @@ type AppResponse struct {
     Message string `json:"message"`
     Error bool `json:"error"`
     Success bool `json:"success"`
-    Data map[string]interface{} `json:data`
+    Data map[string]interface{} `json:"data"`
 }
 
 

@@ -16,7 +16,11 @@ import (
 
 
 func GenerateMnemonic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
-    scryptKey, _ := GenerateScryptKey(16, 16)
+  salt := GenerateRandomSalt(8)
+  passphrase := GenerateRandomString(8)
+
+  scryptKey,_:= GenerateScryptKey(salt, []byte(passphrase))
+
 
 
     c := Asymmetric{ "", ""}

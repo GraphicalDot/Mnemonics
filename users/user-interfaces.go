@@ -15,10 +15,16 @@ type Response struct{
     Token string `json:"token"`
 }
 
+type KeyRequest struct{
+    Email string `json:"email"`
+    PhoneNumber string `bson:"phone_number" json:"phone_number"`
+}
+
+
+
 
 
 type UserStruct struct{
-    Password string `json:"password"`
     UserID string `bson:"user_id" json:"user_id"`
     Address string `json:"address"`
     Email string `json:"email"`
@@ -26,7 +32,8 @@ type UserStruct struct{
     PhoneNumber string `bson:"phone_number" json:"phone_number"`
     PanCard string `json:"pancard"`
     Details map[string]string `json:"details"`
-
+    Salt string `json:"salt"`
+    Phash string `json:"phash"`
 }
 
 type SecretsStruct struct {
@@ -43,6 +50,8 @@ type HSMSecretsStruct struct {
   SecretFive string `bson:"secret_five" json:secret_five`
   SecretSix string `bson:"secret_six" json:secret_six`
 }
+
+
 
 
 
