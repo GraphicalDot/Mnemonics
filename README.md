@@ -7,7 +7,7 @@ Other library which is required to run aes functions is pycryptodome as GCM mode
 most popular cryptography library.
 
 The APi code is now hosted on 52.66.22.183 running behind Nginx.
-
+```
 import requests
 import json
 import binascii
@@ -62,3 +62,4 @@ sss = sssa()
 mnemonic = sss.combine(shares)
 
 print (mnemonic)
+```
