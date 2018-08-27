@@ -1,20 +1,64 @@
 # Mnemonics
 
- r = requests.post("http://localhost:8001/registration",  data=json.dumps({"email": faker.email(), "phonenumber": faker.phone_number()}))
+To install shamir secret library in python user this.
+pip install git+git://github.com/SSSaaS/sssa-python
 
- {'message': 'User succedeed with userid 1293f38e-1b64-4f0e-a18a-b6f5f735f3fb',
- 'error': False,
- 'success': True,
- 'Data': None}
+Other library which is required to run aes functions is pycryptodome as GCM mode is not supported by
+most popular cryptography library.
+
+The APi code is now hosted on 52.66.22.183 running behind Nginx.
+
+import requests
+import json
+import binascii
+from SSSA import sssa
+from faker import Faker
+from Crypto.Cipher import AES
 
 
-databse entry will be :
-{'_id': ObjectId('5b7f094e90b41a055087b5ef'),
- 'password': '',
- 'userid': '7437d4fc-5828-438e-ac73-0e4bba21a1c0',
- 'address': '',
- 'email': 'fcampbell@harrington.com',
- 'createdat': datetime.datetime(2018, 8, 23, 19, 21, 49, 618000),
- 'phonenumber': '1-813-717-3758x60699',
- 'pancard': '',
- 'details': {}}
+
+ip_port= "52.66.22.183"
+
+faker = Faker()
+
+email, phone_number = faker.email(), faker.phone_number()
+
+print (f"Trying to register user with email {email} and phone_number {phone_number}")
+
+r = requests.post("http://%s/registration"%ip_port,  data=json.dumps({"email": email, "phone_number": phone_number, "junkone": faker.paragraph(), "junk_two": faker.paragraph()}))
+user_id = r.json()["data"]["user_id"]
+password = r.json()["data"]["password"]
+
+print (f"User with user id {user_id} has been created, password is {password}")
+
+
+r = requests.post("http://%s/getkeys"%ip_port,  data=json.dumps({"email": email, "phone_number": phone_number}))
+
+
+print ("Hex ecndoed secrets which are received\n")
+print ("Secret One")
+print (r.json()["data"]["secret_one"], "\n")
+print ("Secret Two")
+print (r.json()["data"]["secret_two"], "\n")
+print ("Secret Three")
+print (r.json()["data"]["secret_three"], "\n")
+
+
+shares = []
+
+
+
+##hex decoding the password
+key = binascii.unhexlify(password)
+for secret in r.json()["data"].keys():
+    data = binascii.unhexlify(r.json()["data"][secret])
+    nonce, tag = data[:12], data[-16:]
+    cipher = AES.new(key, AES.MODE_GCM, nonce)
+    shares.append(cipher.decrypt_and_verify(data[12:-16], tag))
+
+
+print (shares)
+sss = sssa()
+mnemonic = sss.combine(shares)
+
+print (mnemonic)
