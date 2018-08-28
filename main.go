@@ -87,9 +87,15 @@ func main() {
 		GetKeysContextHandler := &appsettings.ContextHandler{&context, users.GetKeys}
 		router.Methods("POST").Path("/getkeys").Name("Getkeys").Handler(GetKeysContextHandler)
 
-		MnemonicContextHandler := &appsettings.ContextHandler{&context, encryption.GenerateMnemonic}
-		mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
-		router.Methods("POST").Path("/generatemnemonic").Name("GenerateMnemonic").Handler(mnemonicCheckAuth)
+		MasterMnemonicContextHandler := &appsettings.ContextHandler{&context, encryption.MasterMnemonicKeys}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("POST").Path("/master_mnemonic_keys").Name("MasterMnemonicKeys").Handler(MasterMnemonicContextHandler)
+
+
+		ChildMnemonicContextHandler := &appsettings.ContextHandler{&context, encryption.ChildMnemonicKeys}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("POST").Path("/child_mnemonic_keys").Name("MasterMnemonicKeys").Handler(ChildMnemonicContextHandler)
+
 
 
 

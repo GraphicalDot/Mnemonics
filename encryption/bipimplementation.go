@@ -115,9 +115,15 @@ func (instance *BipKeys) GenerateSeed(mnemonic string, passphrase []byte) ([]byt
 }
 
 func (instance *BipKeys) RootKeyGenerator(seed []byte) (*bip32.Key, *bip32.Key){
-  rootPrivateKey, _ := bip32.NewMasterKey(seed)
-  rootPublicKey := rootPrivateKey.PublicKey()
-  return rootPrivateKey, rootPublicKey
+    rootPrivateKey, err := bip32.NewMasterKey(seed)
+    if err != nil{
+        log.Printf("Error in generating private keys from the seed %s", err)
+        panic(err)
+    }
+
+
+    rootPublicKey := rootPrivateKey.PublicKey()
+    return rootPrivateKey, rootPublicKey
 }
 
 func (instance *BipKeys) GeneratePublicChildKey(rootPublicKey *bip32.Key, childNumber uint32)(*bip32.Key, error){

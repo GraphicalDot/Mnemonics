@@ -10,60 +10,101 @@ import (
         "encoding/json"
         "encoding/hex"
         "io/ioutil"
-
-
+        "github.com/davecgh/go-spew/spew"
 )
 
 
-func GenerateMnemonic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
-  salt := GenerateRandomSalt(8)
-  passphrase := GenerateRandomString(8)
+func MasterMnemonicKeys(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
+    data, err := ioutil.ReadAll(r.Body)
+    defer r.Body.Close()
+    if err != nil {panic(err)}
+    var bipKeys BipKeys
+    err = json.Unmarshal(data, &bipKeys) //address needs to be passed, If you wont pass a pointer,
+                                      // A copy will be created
+    if err != nil {
+        panic(err.Error())
+         }
 
-  scryptKey,_:= GenerateScryptKey(salt, []byte(passphrase))
+    if bipKeys.Mnemonic == ""{
+                      json.NewEncoder(w).Encode(&appsettings.AppResponse{"Mnemonic field cannot be left empty",
+                        false, true, nil})
+                      return http.StatusUnauthorized, nil
+    }
 
 
+    seed := bipKeys.GenerateSeed(bipKeys.Mnemonic, []byte(""))
+    rootPrivateKey, rootPublicKey := bipKeys.RootKeyGenerator(seed)
 
-    c := Asymmetric{ "", ""}
-    privateKey, publicKey, hexKey, mnemonic := c.GenerateMnemonic(hex.EncodeToString(scryptKey))
-
-    log.Printf("This is the private key that was generated %s", privateKey)
-    log.Printf("This is the public key that was generated %s", publicKey)
-    log.Printf("This is the HexKey key that was generated %s", hexKey)
-    log.Printf("This is the Mnemonic key that was generated %s", mnemonic)
-    Secrets()
-    //log.Println(json.Marshal(c))
-    json.NewEncoder(w).Encode(c)
-
+    result := map[string]interface{}{"master_private_key": hex.EncodeToString(rootPrivateKey.Key), "master_public_key": hex.EncodeToString(rootPublicKey.Key) }
+    json.NewEncoder(w).Encode(&appsettings.AppResponse{"Hex Encoded Master Keys", true, false, result})
     return http.StatusOK, nil
 
 }
 
 
 
-func KeysfromMnemonic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
+
+type ChildMnemonicKeysStruct struct{
+    Mnemonic string `json:"mnemonic"`
+    ChildKeyIndex uint32 `json:"child_key_index"`
+
+}
+
+
+func(c *ChildMnemonicKeysStruct) DataValidation() (string, bool){
+  if c.Mnemonic == ""{
+        return "Mnemonic field cant be left empty", false
+  }
+  if c.ChildKeyIndex == 0{
+        return "Please specify the child index number", false
+  }
+  return "", true
+
+}
+
+
+
+func ChildMnemonicKeys(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
     data, err := ioutil.ReadAll(r.Body)
     defer r.Body.Close()
-
-    //If there is an error reading the request params, The code will panic,
-    // You can handle the panic by using function closures as is handled in
-    //user login
     if err != nil {panic(err)}
-
-    //Creating an instance of User struct and Unmarshalling incoming
-    // json into the User staruct instance
-    var asymmteric Asymmetric
-    err = json.Unmarshal(data, &asymmteric) //address needs to be passed, If you wont pass a pointer,
+    var child ChildMnemonicKeysStruct
+    err = json.Unmarshal(data, &child) //address needs to be passed, If you wont pass a pointer,
                                       // A copy will be created
     if err != nil {
         panic(err.Error())
          }
 
-    log.Println(asymmteric)
-    asymmteric.KeysFromMnemonic()
-    json.NewEncoder(w).Encode(asymmteric)
+    if message, ok := child.DataValidation(); !ok{
+                 json.NewEncoder(w).Encode(&appsettings.AppResponse{message,
+                   false, true, nil})
+                 return http.StatusUnauthorized, nil
+         }
+
+    var bipKeys BipKeys
+
+    seed := bipKeys.GenerateSeed(child.Mnemonic, []byte(""))
+    rootPrivateKey, rootPublicKey := bipKeys.RootKeyGenerator(seed)
+
+    nthChildPrivate, nthChildPublic, err := bipKeys.GeneratePrivateChildKey(rootPrivateKey, child.ChildKeyIndex)
+    if err != nil{
+        log.Println("")
+
+    }
+
+
+    result := map[string]interface{}{"master_private_key": hex.EncodeToString(rootPrivateKey.Key),
+            "master_public_key": hex.EncodeToString(rootPublicKey.Key),
+            "index": child.ChildKeyIndex,
+            "child_private_key": hex.EncodeToString(nthChildPrivate.Key),
+            "child_public_key": hex.EncodeToString(nthChildPublic.Key)}
+
+    spew.Dump(child)
+    json.NewEncoder(w).Encode(&appsettings.AppResponse{"Hex Encoded Strings", true, false, result})
 
 
     return http.StatusOK, nil
+
 
 
 }

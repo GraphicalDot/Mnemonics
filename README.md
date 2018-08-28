@@ -63,3 +63,33 @@ mnemonic = sss.combine(shares)
 
 print (mnemonic)
 ```
+
+As python code for getting master private and child keys from Mnemonic is not available, For the time being
+Two seperate apis have been created:
+/master_mnemonic_keys
+        To get the master public private key from the mnemonic
+
+```
+r = requests.post("http://%s/master_mnemonic_keys"%ip,  data=json.dumps({"mnemonic": "art distance random latin ranch canal mouse mirror whisper broom rotate door wheat toddler mirror recipe friend hill life early staff betray fit fit"}))
+
+{'message': 'Hex Encoded Master Keys',
+ 'error': True,
+ 'success': False,
+ 'data': {'master_private_key': '67cbc441133a38c4f3199e44e02bb3b407eb5962ce8ad2d8ecf80b742d055acc',
+  'master_public_key': '02c40d1c2499112bad49a8cf7c1d461f0dbe6037fd918d8dcf76d10d064f499ae1'}}
+```
+
+/child_mnemonic_keys
+    To generate child public and private keys from the Mnemonic based on the index
+
+```
+r = requests.post("http://%s/child_mnemonic_keys"%ip,  data=json.dumps({"mnemonic": "art distance random latin ranch canal mouse mirror whisper broom rotate door wheat toddler mirror recipe friend hill life early staff betray fit fit", "child_key_index": 1}))
+{'message': 'Hex Encoded Strings',
+ 'error': True,
+ 'success': False,
+ 'data': {'child_private_key': '13d0bf6c0be067f143dfb5cdb3dd59a57d907785f7843edd7601c5935f226e90',
+  'child_public_key': '02ddfaae1da3bb18002e8682fb3c5528d270ab254b4b0083af09332b2356099bc3',
+  'index': 1,
+  'master_private_key': '67cbc441133a38c4f3199e44e02bb3b407eb5962ce8ad2d8ecf80b742d055acc',
+  'master_public_key': '02c40d1c2499112bad49a8cf7c1d461f0dbe6037fd918d8dcf76d10d064f499ae1'}}
+```
