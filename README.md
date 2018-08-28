@@ -93,3 +93,10 @@ r = requests.post("http://%s/child_mnemonic_keys"%ip,  data=json.dumps({"mnemoni
   'master_private_key': '67cbc441133a38c4f3199e44e02bb3b407eb5962ce8ad2d8ecf80b742d055acc',
   'master_public_key': '02c40d1c2499112bad49a8cf7c1d461f0dbe6037fd918d8dcf76d10d064f499ae1'}}
 ```
+
+Code for converting BIP keys to standard secp256k1 key, which can be used on sawtooth network.
+
+```
+import secp256k1
+private_key  = secp256k1.PrivateKey(bytes.fromhex("8f26d40638fc47c22191569fcf25b6b41fa8db2b589c7df6b42ea040ed41965c"))
+```
