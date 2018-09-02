@@ -21,16 +21,15 @@ func (c *SecretsStruct) SetEncryptedSecrets(key string, userId string, splitShar
     }
 
 
-    var err error
     for index, splitKey := range splitShares{
-        encryptedKeys[index], err = encryption.AESEncryption(decodePassword, []byte(splitKey))
+        encryptedShare, err := encryption.AESEncryption(decodePassword, []byte(splitKey))
         if err != nil{
             log.Printf("Error occurred in encrypting SplitKeys %s", err)
-      }}
+        }
+        encryptedKeys[index] = hex.EncodeToString(encryptedShare)
+        }
 
       c.UserID = userId
-      c.SecretOne = hex.EncodeToString(encryptedKeys[0])
-      c.SecretTwo = hex.EncodeToString(encryptedKeys[1])
-      c.SecretThree = hex.EncodeToString(encryptedKeys[2])
+      c.Secrets = encryptedKeys
       log.Printf("This is the c %s", c)
 }

@@ -96,6 +96,13 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           session := appContext.Db.Copy()
           defer session.Close()
 
+          rethinkdbSession := appContext.RethinkSession
+
+          rethinkdbSettings:= *appContext.Config.Get("rethinkdb")
+          tableName, _ := rethinkdbSettings.Get("secretTable").String()
+
+
+
           databaseSettings:= *appContext.Config.Get("Mongo")
           databaseName, _ := databaseSettings.Get("DBname").String()
           userCollectionName, _ := databaseSettings.Get("userCollection").String()
@@ -138,7 +145,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 //seed := Keys.GenerateSeed(mnemonic, nil)
                 //log.Printf("This is the seed generated %s", hex.EncodeToString(seed))
 
-                splitShares, err := Keys.SplitMnemonic(6, 3, mnemonic)
+                splitShares, err := Keys.SplitMnemonic(21, 3, mnemonic)
                 if err != nil{
                     log.Printf("These are the splitshares %s", splitShares)
                 }
@@ -150,10 +157,22 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                   //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
                   //                                      "secret_two": encryptedKeys[1],
                   //                                    "secret_three": encryptedKeys[2]})
+
+
+
+
                   err = secretCollection.Insert(g)
+
                   if err != nil {
                               panic(err)
                            }
+
+                  err := r.Table(tableName).Insert(g).Exec(rethinkdbSession)
+
+                                    if err != nil {
+                                                panic(err)
+                                             }
+
 
                   hsmKeys := HSMSecretsStruct{}
                   hsmKeys.SetEncryptionKey()

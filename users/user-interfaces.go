@@ -38,17 +38,13 @@ type UserStruct struct{
 
 type SecretsStruct struct {
   UserID string `bson:"user_id" json:"userid"`
-  SecretOne string `bson:"secret_one" json:secret_one`
-  SecretTwo string `bson:"secret_two" json:secret_two`
-  SecretThree string `bson:"secret_three" json:secret_three`
+  Secrets []string `r:"secrets" bson:"secret_three" json:secret_three`
 }
 
 type HSMSecretsStruct struct {
   UseridHash string `bson:"user_id_hash" json:"user_id_hash"`
   AESKey string `bson:"aes_key" json:"aes_key"`
-  SecretFour string`bson:"secret_four" json:secret_four`
-  SecretFive string `bson:"secret_five" json:secret_five`
-  SecretSix string `bson:"secret_six" json:secret_six`
+  Secrets []string `bson:"secrets" json:secrets`
 }
 
 

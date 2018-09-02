@@ -20,6 +20,14 @@
         "saltBYteLength": 16,
         "passphraseByteLength": 16
 
-    }
+    },
 
+    "rethinkdb": {
+    	   "address": "192.168.1.16:28015",
+	   "secretTable": "secrets",
+	   "database": "main_db",
+	   "username": "john",
+	   "password": "p455w0rd"
+    }
+    }
 }

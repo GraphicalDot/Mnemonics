@@ -11,6 +11,8 @@ import (
   "gopkg.in/mgo.v2"
   //"gopkg.in/mgo.v2/bson"
   "github.com/bitly/go-simplejson"
+  r "gopkg.in/gorethink/gorethink.v4"
+
 
 
 )
@@ -76,9 +78,7 @@ type ContextHandler struct {
 type AppContext struct {
     Db    *mgo.Session
     Config *simplejson.Json
-  	//Redis *redis.Pool
-  	//Whatever other context-y stuff you might need
-  	//kafka, rabbit, zookeeper and other buzzwords
+    RethinkSession *r.Session
 }
 
 
@@ -202,5 +202,27 @@ func Initdb(configfile  *simplejson.Json) *mgo.Session{
     }
 
     session.SetMode(mgo.Monotonic, true)
+    return session
+}
+
+//This function creates a dbconnection
+func InitRethinkdb(configfile  *simplejson.Json) *r.Session{
+    dbconfig := configfile.Get("rethinkdb")
+    address, _ := dbconfig.Get("address").String()
+    dbname, _ := dbconfig.Get("database_name").String()
+    //username, _ := dbconfig.Get("username").String()
+    //password, _ := dbconfig.Get("password").String()
+
+    session, err := r.Connect(r.ConnectOpts{
+    Address: address,
+    Database: dbname,
+    //Username: username,
+    //Password: password,
+})
+
+    if err != nil {
+          log.Fatal("CreateSession error for rethinkdb: %s\n", err)
+    }
+
     return session
 }

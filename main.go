@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"encoding/hex"
 	"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/handlers"
@@ -14,7 +13,8 @@ import (
 	"gitlab.com/mesha/Mnemonics/users"
 	"io/ioutil"
 	"log"
-	    "github.com/davecgh/go-spew/spew"
+	 _  "github.com/davecgh/go-spew/spew"
+
 	"net/http"
 	"os"
 )
@@ -28,43 +28,14 @@ func TestHandler(c *appsettings.AppContext, w http.ResponseWriter, req *http.Req
 }
 
 func main() {
-
-		log.Printf("TEsting AES encryption and Decryption")
-		salt := encryption.GenerateRandomSalt(8)
-    passphrase := encryption.GenerateRandomString(8)
-
-    aesKey, err := encryption.GenerateScryptKey(salt, []byte(passphrase))
-
-		if err != nil {
-					log.Printf("There is an error generating the password %s", err)
-		}
-		log.Printf("This is the AES Key %s", hex.EncodeToString(aesKey))
-		plainText := "I am the smartest person alive, I will become what i deserve"
-		log.Printf("THis is the text for operation %s", plainText)
-
-		cipherText, err := encryption.AESEncryption(aesKey, []byte(plainText))
-		log.Printf("CipherText bytes :: %s", cipherText)
-		log.Printf("Hex Encoded CipherText :: %s", hex.EncodeToString(cipherText))
-
-		decryptedText, err := encryption.DecryptBlock(cipherText, aesKey)
-
-		if err != nil{
-			log.Printf("error occurred in Decrypting CipherText :: %s", err)
-
-
-		}
-
-		spew.Dump(decryptedText)
-		log.Printf("Decrypted CipherText :: %s", decryptedText)
-
-
 		//file, fileerror := os.Open("settings/config.json")
 
 		j, _ := ioutil.ReadFile("config.json")
 		configfile, _ := simplejson.NewFromReader(bytes.NewReader(j))
 		router := mux.NewRouter()
 
-		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), Config: configfile}
+
+		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), RethinkSession: appsettings.InitRethinkdb(configfile),  Config: configfile}
 
 
 		//This function generates a random string everytime the app restarts,

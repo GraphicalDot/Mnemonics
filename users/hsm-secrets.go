@@ -46,14 +46,13 @@ func (c *HSMSecretsStruct) SetEncryptedSecrets(splitKeys []string){
         log.Printf("There is an error decoding the HSMAES Key %s", decodeErr)
     }
 
-    var err error
     for index, splitKey := range splitKeys {
-        encryptedKeys[index], err = encryption.AESEncryption(decodeAesKey, []byte(splitKey))
+        encryptedShare, err := encryption.AESEncryption(decodeAesKey, []byte(splitKey))
+
+          encryptedKeys[index] = hex.EncodeToString(encryptedShare)
         if err != nil{
             log.Printf("Error occurred in encrypting SplitKeys %s", err)
       }}
-    c.SecretFour = hex.EncodeToString(encryptedKeys[0])
-    c.SecretFive = hex.EncodeToString(encryptedKeys[1])
-    c.SecretSix = hex.EncodeToString(encryptedKeys[2])
+    c.Secrets = encryptedKeys
     log.Printf("This is the c %s", c)
 }
