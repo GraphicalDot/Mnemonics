@@ -209,13 +209,11 @@ func Initdb(configfile  *simplejson.Json) *mgo.Session{
 func InitRethinkdb(configfile  *simplejson.Json) *r.Session{
     dbconfig := configfile.Get("rethinkdb")
     address, _ := dbconfig.Get("address").String()
-    dbname, _ := dbconfig.Get("database_name").String()
     //username, _ := dbconfig.Get("username").String()
     //password, _ := dbconfig.Get("password").String()
 
     session, err := r.Connect(r.ConnectOpts{
     Address: address,
-    Database: dbname,
     //Username: username,
     //Password: password,
 })

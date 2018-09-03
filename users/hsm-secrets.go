@@ -39,7 +39,7 @@ func (c *HSMSecretsStruct) SetUserIdHash(userid string) {
 
 
 func (c *HSMSecretsStruct) SetEncryptedSecrets(splitKeys []string){
-    encryptedKeys := make([][]byte, len(splitKeys))
+    encryptedKeys := make([]string, len(splitKeys))
 
     decodeAesKey, decodeErr := hex.DecodeString(c.AESKey)
     if decodeErr != nil{

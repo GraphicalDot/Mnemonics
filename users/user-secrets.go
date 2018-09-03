@@ -13,7 +13,7 @@ import (
 
 
 func (c *SecretsStruct) SetEncryptedSecrets(key string, userId string, splitShares []string){
-    encryptedKeys := make([][]byte, len(splitShares))
+    encryptedKeys := make([]string, len(splitShares))
 
     decodePassword, decodeErr := hex.DecodeString(key)
     if decodeErr != nil{

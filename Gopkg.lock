@@ -50,6 +50,14 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:2ea21dbabd79092168651677550cff39e093ac38d231446a6aeaac79cec83025"
+  name = "github.com/dancannon/gorethink"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "64076e7cb29082288c24da773249419b82b20050"
+  version = "v4.1.0"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -243,6 +251,7 @@
     "github.com/SSSaaS/Sssa-golang",
     "github.com/akamensky/base58",
     "github.com/bitly/go-simplejson",
+    "github.com/dancannon/gorethink",
     "github.com/davecgh/go-spew/spew",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/handlers",

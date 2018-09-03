@@ -15,6 +15,8 @@ import (
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
     "github.com/satori/go.uuid"
+    rDB "gopkg.in/gorethink/gorethink.v4"
+
 
 )
 
@@ -23,7 +25,7 @@ import (
 
 func(c *UserStruct) data() bool{
   if c.Email == ""{
-        fmt.Println("Problem with Password")
+    fmt.Println("Problem with Password")
         return false
   }
   if c.PhoneNumber == ""{
@@ -99,6 +101,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
           rethinkdbSession := appContext.RethinkSession
 
           rethinkdbSettings:= *appContext.Config.Get("rethinkdb")
+          rethinkDBName, _ := rethinkdbSettings.Get("database").String()
           tableName, _ := rethinkdbSettings.Get("secretTable").String()
 
 
@@ -167,11 +170,11 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                               panic(err)
                            }
 
-                  err := r.Table(tableName).Insert(g).Exec(rethinkdbSession)
 
-                                    if err != nil {
-                                                panic(err)
-                                             }
+                  _, err = rDB.DB(rethinkDBName).Table(tableName).Insert(g).Run(rethinkdbSession)
+                  if err != nil {
+                          panic(err)
+                    }
 
 
                   hsmKeys := HSMSecretsStruct{}

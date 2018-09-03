@@ -38,7 +38,7 @@ type UserStruct struct{
 
 type SecretsStruct struct {
   UserID string `bson:"user_id" json:"userid"`
-  Secrets []string `r:"secrets" bson:"secret_three" json:secret_three`
+  Secrets []string `r:"secrets" bson:"secrets" json:secret`
 }
 
 type HSMSecretsStruct struct {

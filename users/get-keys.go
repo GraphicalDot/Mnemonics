@@ -103,7 +103,7 @@ func GetKeys(appContext *appsettings.AppContext, w http.ResponseWriter, r *http.
 
           log.Printf("This is the dbName %s", databaseName)
           */
-          result := map[string]interface{}{"secret_one": secrets.SecretOne, "secret_two": secrets.SecretTwo, "secret_three": secrets.SecretThree}
+          result := map[string]interface{}{"secrets": secrets.Secrets}
 
           response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", "tatti"), false, true, result}
 

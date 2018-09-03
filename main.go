@@ -14,6 +14,8 @@ import (
 	"io/ioutil"
 	"log"
 	 _  "github.com/davecgh/go-spew/spew"
+	 rDB "gopkg.in/gorethink/gorethink.v4"
+
 
 	"net/http"
 	"os"
@@ -44,7 +46,27 @@ func main() {
 		context.Config.Get("JWT").Set("secret", secret)
 
 
-		fmt.Println("Starting the application...")
+		//var err error
+
+		/*
+		session, err := rDB.Connect(rDB.ConnectOpts{
+		Address:  "192.168.1.17:28015"})
+		if err != nil {
+				fmt.Println(err)
+			}
+		*/
+
+		rethinkdbSettings:= context.Config.Get("rethinkdb")
+		rethinkDBName, _ := rethinkdbSettings.Get("database").String()
+		tableName, _ := rethinkdbSettings.Get("secretTable").String()
+		db, err := rDB.DBCreate(rethinkDBName).RunWrite(context.RethinkSession)
+					log.Printf("Error in creating database %s", db)
+
+		_, err = rDB.DB(rethinkDBName).TableCreate(tableName).RunWrite(context.RethinkSession)
+				if err != nil {
+						fmt.Println(err)
+		}
+
 
 
 		UserLoginContextHandler := &appsettings.ContextHandler{&context, users.Userlogin}
