@@ -13,11 +13,7 @@ import (
     "math/big"
     "encoding/base64"
     "golang.org/x/crypto/scrypt"
-
-
-
    //"gitlab.com/mesha/Gofeynmen/users"
-
 )
 
 

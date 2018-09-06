@@ -54,5 +54,4 @@ func (c *HSMSecretsStruct) SetEncryptedSecrets(splitKeys []string){
             log.Printf("Error occurred in encrypting SplitKeys %s", err)
       }}
     c.Secrets = encryptedKeys
-    log.Printf("This is the c %s", c)
 }

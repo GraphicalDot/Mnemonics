@@ -31,5 +31,4 @@ func (c *SecretsStruct) SetEncryptedSecrets(key string, userId string, splitShar
 
       c.UserID = userId
       c.Secrets = encryptedKeys
-      log.Printf("This is the c %s", c)
 }

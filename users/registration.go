@@ -24,10 +24,20 @@ import (
 // provided by the post requests on user registration
 
 func(c *UserStruct) data() bool{
+
+  log.Println("Entered into userstruct")
   if c.Email == ""{
     fmt.Println("Problem with Password")
         return false
   }
+
+  switch v := interface{}(c.PhoneNumber).(type) {
+      case string:
+          log.Printf("Phone number excepted")
+      default:
+            log.Printf("unexpected type %T of user phone number", v)
+            return false
+      }
   if c.PhoneNumber == ""{
         fmt.Println("Problem with Phone number")
         return false
@@ -196,7 +206,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
 
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
-              response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID), false, true, map[string]interface{}{"password": userPassword, "user_id": userStruct.UserID}}
+              response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID),
+                                false, true, map[string]interface{}{"password": userPassword, "user_id": userStruct.UserID, "secrets": g.Secrets}}
 
               json.NewEncoder(w).Encode(response)
                 return http.StatusOK, nil

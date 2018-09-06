@@ -7,7 +7,6 @@ import (
     "crypto/aes"
     "crypto/cipher"
     "crypto/rand"
-    "encoding/hex"
     "errors"
     "io"
     "log"
@@ -32,7 +31,6 @@ func AESEncryption(key []byte, plaintext []byte)([]byte, error){
         log.Printf("Error ocurred in generating AES key %s", err)
           return nil, err
       }
-      log.Printf("This is the nonce %s and its size is %v and its hex is %s", nonce, len(nonce), hex.EncodeToString(nonce))
 
       return gcm.Seal(nonce, nonce, plaintext, nil), nil
 

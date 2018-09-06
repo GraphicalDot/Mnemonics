@@ -23,11 +23,11 @@
     },
 
     "rethinkdb": {
-    	   "address": "192.168.1.16:28015",
+    	   "address": "13.232.172.238:28015",
 	   "secretTable": "secrets",
 	   "database": "main_db",
-	   "username": "john",
-	   "password": "p455w0rd"
+	   "username": "adminuser",
+	   "password": "PULLcommand9876#"
     }
     }
 }

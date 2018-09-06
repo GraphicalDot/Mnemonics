@@ -55,7 +55,7 @@ func(c *ChildMnemonicKeysStruct) DataValidation() (string, bool){
   if c.Mnemonic == ""{
         return "Mnemonic field cant be left empty", false
   }
-  if c.ChildKeyIndex == 0{
+  if c.ChildKeyIndex < 0{
         return "Please specify the child index number", false
   }
   return "", true

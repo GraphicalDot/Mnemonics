@@ -3,6 +3,7 @@ package users
 
 import ("time"
   _ "github.com/satori/go.uuid"
+
 )
 
 
@@ -37,8 +38,8 @@ type UserStruct struct{
 }
 
 type SecretsStruct struct {
-  UserID string `bson:"user_id" json:"userid"`
-  Secrets []string `r:"secrets" bson:"secrets" json:secret`
+  UserID string `r:"user_id" bson:"user_id" json:"user_id"`
+  Secrets []string `r:"secrets" bson:"secrets" json:secrets`
 }
 
 type HSMSecretsStruct struct {
