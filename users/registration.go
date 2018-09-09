@@ -149,6 +149,19 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 //log.Printf("This is the entropy generated %s", entropy)
                 mnemonic, _ := Keys.GenerateMnemonic(entropy)
 
+                seed := Keys.GenerateSeed(mnemonic, []byte(""))
+                rootPrivateKey, rootPublicKey := Keys.RootKeyGenerator(seed)
+                log.Printf("Root Private key %s", rootPrivateKey)
+                log.Printf("Root Public key %s", rootPublicKey)
+
+                nthChildPrivate, nthChildPublic, err := Keys.GeneratePrivateChildKey(rootPrivateKey, 0)
+                if err != nil{
+                    log.Println("")
+
+                }
+                log.Printf("0th index Private key  is  %s", nthChildPrivate)
+                log.Printf("0th index Public key  is  %s", nthChildPublic)
+
                 //log.Printf("This is the menmonic generated %s", mnemonic)
 
                 //passphrase, _ := Keys.GeneratePassphrase(16, 16)
@@ -166,6 +179,15 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                   g := SecretsStruct{}
                   g.SetEncryptedSecrets(userPassword, userStruct.UserID, splitShares[0:3 ] )
+                  g.Address = userStruct.Address
+                  g.CreatedAt = userStruct.CreatedAt
+                  g.PhoneNumber = userStruct.PhoneNumber
+                  g.Email = userStruct.Email
+                  g.PanCard = userStruct.PanCard
+                  g.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)
+                  g.PublicKey =  hex.EncodeToString(rootPublicKey.Key)
+                  userStruct.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)
+                  userStruct.PublicKey =  hex.EncodeToString(rootPublicKey.Key)
                   //log.Printf("This is the g %s", g)
                   //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
                   //                                      "secret_two": encryptedKeys[1],

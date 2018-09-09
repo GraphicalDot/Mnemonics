@@ -27,19 +27,27 @@ type KeyRequest struct{
 
 type UserStruct struct{
     UserID string `bson:"user_id" json:"user_id"`
-    Address string `json:"address"`
-    Email string `json:"email"`
-    CreatedAt time.Time `json:"created_at"`
+    Address string `bson:"address" json:"address"`
+    Email string `bson:"email" json:"email"`
+    CreatedAt time.Time `bson:"created_at" json:"created_at"`
     PhoneNumber string `bson:"phone_number" json:"phone_number"`
-    PanCard string `json:"pancard"`
+    PanCard string `bson:"pancard" json:"pan_card"`
     Details map[string]string `json:"details"`
-    Salt string `json:"salt"`
-    Phash string `json:"phash"`
+    PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
+    ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
+
 }
 
 type SecretsStruct struct {
-  UserID string `r:"user_id" bson:"user_id" json:"user_id"`
-  Secrets []string `r:"secrets" bson:"secrets" json:secrets`
+  UserID string `gorethink:"user_id" bson:"user_id" json:"user_id"`
+  PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
+  ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
+  Secrets []string `gorethink:"secrets" bson:"secrets" json:secrets`
+  Address string `gorethink:"address" bson:"address" json:"address"`
+  Email string `gorethink:"email" bson:"email" json:"email"`
+  CreatedAt time.Time `gorethink:"created_at" bson:"created_at" json:"created_at"`
+  PhoneNumber string `gorethink:"phone_number" bson:"phone_number" json:"phone_number"`
+  PanCard string `gorethink:"pancard" bson:"pancard" json:"pancard"`
 }
 
 type HSMSecretsStruct struct {
