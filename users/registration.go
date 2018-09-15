@@ -159,8 +159,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                     log.Println("")
 
                 }
-                log.Printf("0th index Private key  is  %s", nthChildPrivate)
-                log.Printf("0th index Public key  is  %s", nthChildPublic)
+                log.Printf("0th index Private key  is  %s", hex.EncodeToString(nthChildPrivate.Key))
+                log.Printf("0th index Public key  is  %s", hex.EncodeToString(nthChildPublic.Key))
 
                 //log.Printf("This is the menmonic generated %s", mnemonic)
 
