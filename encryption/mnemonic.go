@@ -183,14 +183,14 @@ func KeysFromIndexes(appcontext *appsettings.AppContext, w http.ResponseWriter, 
 
         var s = strconv.FormatUint(uint64(index), 10)
         result[s] = map[string]interface{}{
-                  "public_key": nthChildPublic,
-                  "private_key": nthChildPrivate,
+                  "public_key":  hex.EncodeToString(nthChildPublic.Key),
+                  "private_key":  hex.EncodeToString(nthChildPrivate.Key),
             }
 
     }
 
     spew.Dump(child)
-    json.NewEncoder(w).Encode(&appsettings.AppResponse{"Child public private keys based on the indexes", true, false, result})
+    json.NewEncoder(w).Encode(&appsettings.AppResponse{"Child public private keys based on the indexes", false, true, result})
 
 
     return http.StatusOK, nil

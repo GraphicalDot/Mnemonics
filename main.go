@@ -90,6 +90,11 @@ func main() {
 		router.Methods("POST").Path("/child_mnemonic_keys").Name("MasterMnemonicKeys").Handler(ChildMnemonicContextHandler)
 
 
+		KeysFromIndexesContextHandler := &appsettings.ContextHandler{&context, encryption.KeysFromIndexes}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("POST").Path("/keys_from_indexes").Name("KeysFromIndexes").Handler(KeysFromIndexesContextHandler)
+
+
 
 
 		log.Fatal(http.ListenAndServe(":8001", handlers.CORS()(handlers.LoggingHandler(os.Stdout, router))))
