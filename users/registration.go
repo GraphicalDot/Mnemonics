@@ -9,6 +9,7 @@ import (
     "io/ioutil"
     "encoding/hex"
     "time"
+    "errors"
     "gopkg.in/mgo.v2/bson"
     _ "golang.org/x/crypto/bcrypt"
     "gitlab.com/mesha/Mnemonics/appsettings"
@@ -23,26 +24,46 @@ import (
 //This is a struct method on struct User which checks the struct variables
 // provided by the post requests on user registration
 
-func(c *UserStruct) data() bool{
+func(c *UserStruct) data() (error, bool){
 
   log.Println("Entered into userstruct")
   if c.Email == ""{
-    fmt.Println("Problem with Password")
-        return false
+    fmt.Println("Problem with Email")
+        return errors.New("Problem with Email"),  false
+  }
+
+  if c.FirstName == ""{
+        fmt.Println("Problem with first_name, cannot be left blank")
+        return errors.New("Problem with first_name, cannot be left blank"), false
+  }
+
+  if c.LastName == ""{
+        fmt.Println("Problem with last_name, cannot be left blank")
+        return errors.New("Problem with last_name, cannot be left blank"), false
+  }
+
+  if c.Adhaar == ""{
+        fmt.Println("Problem with adhaar, cannot be left blank")
+        return errors.New("Problem with adhaar, cannot be left blank"), false
   }
 
   switch v := interface{}(c.PhoneNumber).(type) {
       case string:
-          log.Printf("Phone number excepted")
+          log.Printf("Phone number accepted")
       default:
             log.Printf("unexpected type %T of user phone number", v)
-            return false
+            return errors.New("Problem with adhaar_card, cannot be left blank"), false
       }
   if c.PhoneNumber == ""{
         fmt.Println("Problem with Phone number")
-        return false
+        return errors.New("Problem with Phone number, cannot be left blank"), false
   }
-  return true
+  if c.PanCard == ""{
+        fmt.Println("Problem with PanCard")
+        return errors.New("Problem with pancard, cannot be left blank"), false
+  }
+
+  return nil, true
 
 }
 
@@ -99,9 +120,10 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                }
 
           //Creating a new instance of response object so that response can be returned in JSON
-          if userStruct.data() == false{
-                  fmt.Println("Incomplete json data")
-                  json.NewEncoder(w).Encode(&appsettings.AppResponse{"Missing parameters",
+          err, _ = userStruct.data()
+          if err != nil{
+                  errString :=  fmt.Sprintf("%v", err)
+                  json.NewEncoder(w).Encode(&appsettings.AppResponse{errString,
                     false, true, nil})
                   return http.StatusUnauthorized, nil
           }
@@ -179,11 +201,13 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
 
                   g := SecretsStruct{}
                   g.SetEncryptedSecrets(userPassword, userStruct.UserID, splitShares[0:3 ] )
-                  g.Address = userStruct.Address
                   g.CreatedAt = userStruct.CreatedAt
                   g.PhoneNumber = userStruct.PhoneNumber
                   g.Email = userStruct.Email
                   g.PanCard = userStruct.PanCard
+                  g.FirstName = userStruct.FirstName
+                  g.LastName = userStruct.LastName
+                  g.Adhaar= userStruct.Adhaar
                   g.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)
                   g.PublicKey =  hex.EncodeToString(rootPublicKey.Key)
                   userStruct.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)

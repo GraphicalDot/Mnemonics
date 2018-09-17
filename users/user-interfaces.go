@@ -29,9 +29,12 @@ type UserStruct struct{
     UserID string `bson:"user_id" json:"user_id"`
     Address string `bson:"address" json:"address"`
     Email string `bson:"email" json:"email"`
+    Adhaar string `bson:"adhaar" json:"adhaar"`
+    FirstName string `bson:"first_name" json:"first_name"`
+    LastName string `bson:"last_name" json:"last_name"`
     CreatedAt time.Time `bson:"created_at" json:"created_at"`
     PhoneNumber string `bson:"phone_number" json:"phone_number"`
-    PanCard string `bson:"pancard" json:"pan_card"`
+    PanCard string `bson:"pancard" json:"pancard"`
     Details map[string]string `json:"details"`
     PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
     ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
@@ -43,11 +46,13 @@ type SecretsStruct struct {
   PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
   ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
   Secrets []string `gorethink:"secrets" bson:"secrets" json:secrets`
-  Address string `gorethink:"address" bson:"address" json:"address"`
+  Adhaar string `gorethink:"adhaar" bson:"adhaar" json:"adhaar"`
   Email string `gorethink:"email" bson:"email" json:"email"`
   CreatedAt time.Time `gorethink:"created_at" bson:"created_at" json:"created_at"`
   PhoneNumber string `gorethink:"phone_number" bson:"phone_number" json:"phone_number"`
   PanCard string `gorethink:"pancard" bson:"pancard" json:"pancard"`
+  FirstName string `gorethink:"first_name" bson:"first_name" json:"first_name"`
+  LastName string `gorethink:"last_name" bson:"last_name" json:"last_name"`
 }
 
 type HSMSecretsStruct struct {
