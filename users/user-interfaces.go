@@ -4,6 +4,7 @@ package users
 import ("time"
   _ "github.com/satori/go.uuid"
 
+
 )
 
 
@@ -37,14 +38,20 @@ type UserStruct struct{
     PanCard string `bson:"pancard" json:"pancard"`
     Details map[string]string `json:"details"`
     PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
+    SerializedPublicKey string `gorethink:"serialized_public_key" bson:"serialized_public_key" json:"serialized_public_key"`
+
     ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
+    SerializedZerothPublicKey string `gorethink:"serialized_zeroth_public_key" bson:"serialized_zeroth_public_key" json:"serialized_zeroth_public_key"`
+
 
 }
 
 type SecretsStruct struct {
   UserID string `gorethink:"user_id" bson:"user_id" json:"user_id"`
+  SerializedPublicKey string `gorethink:"serialized_public_key" bson:"serialized_public_key" json:"serialized_public_key"`
   PublicKey string `gorethink:"public_key" bson:"public_key" json:"public_key"`
   ZerothPublicKey string `gorethink:"zeroth_public_key" bson:"zeroth_public_key" json:"zeroth_public_key"`
+  SerializedZerothPublicKey string `gorethink:"serialized_zeroth_public_key" bson:"serialized_zeroth_public_key" json:"serialized_zeroth_public_key"`
   Secrets []string `gorethink:"secrets" bson:"secrets" json:secrets`
   Adhaar string `gorethink:"adhaar" bson:"adhaar" json:"adhaar"`
   Email string `gorethink:"email" bson:"email" json:"email"`

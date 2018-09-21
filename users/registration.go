@@ -17,6 +17,8 @@ import (
     _ "github.com/skip2/go-qrcode"
     "github.com/satori/go.uuid"
     rDB "gopkg.in/gorethink/gorethink.v4"
+    "github.com/tyler-smith/go-bip32"
+
 
 
 )
@@ -98,6 +100,14 @@ func (c *UserStruct) GeneratePassword() string {
 }
 
 
+func Bip32ToHex(key *bip32.Key) string {
+    serializedPublicKey, err := key.Serialize()
+    if err != nil{
+        log.Printf("Error in serializeing the key %s", err)
+    }
+    HexRootPublicKey := hex.EncodeToString(serializedPublicKey)
+    return HexRootPublicKey
+}
 
 func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter, r *http.Request) (int, error){
 
@@ -176,6 +186,19 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 log.Printf("Root Private key %s", rootPrivateKey)
                 log.Printf("Root Public key %s", rootPublicKey)
 
+
+
+                HexRootPublicKey := Bip32ToHex(rootPublicKey)
+
+
+                //log.Printf("Here the is key.key root public %s", hex.EncodeToString(rootPublicKey.Key))
+                //log.Println(hex_serialized_key)
+
+                //dese, err := hex.DecodeString(hex_serialized_key)
+                //dude, err := bip32.Deserialize(dese)
+                //log.Printf("Here is the recovered desrialized key %s", dude)
+                //log.Printf("Here is the recovered desrialized key %s", dude.Key)
+
                 nthChildPrivate, nthChildPublic, err := Keys.GeneratePrivateChildKey(rootPrivateKey, 0)
                 if err != nil{
                     log.Println("")
@@ -183,6 +206,8 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 }
                 log.Printf("0th index Private key  is  %s", hex.EncodeToString(nthChildPrivate.Key))
                 log.Printf("0th index Public key  is  %s", hex.EncodeToString(nthChildPublic.Key))
+
+                HexChildPublicKey := Bip32ToHex(nthChildPublic)
 
                 //log.Printf("This is the menmonic generated %s", mnemonic)
 
@@ -209,9 +234,17 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                   g.LastName = userStruct.LastName
                   g.Adhaar= userStruct.Adhaar
                   g.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)
+                  g.SerializedZerothPublicKey =  HexRootPublicKey
+
                   g.PublicKey =  hex.EncodeToString(rootPublicKey.Key)
+                  g.SerializedPublicKey = HexChildPublicKey
+
                   userStruct.ZerothPublicKey =  hex.EncodeToString(nthChildPublic.Key)
+                  userStruct.SerializedZerothPublicKey =  HexChildPublicKey
+
                   userStruct.PublicKey =  hex.EncodeToString(rootPublicKey.Key)
+                  userStruct.SerializedPublicKey = HexRootPublicKey
+
                   //log.Printf("This is the g %s", g)
                   //err = secretCollection.Insert(bson.M{"userid": userStruct.UserID, "secret_one": encryptedKeys[0],
                   //                                      "secret_two": encryptedKeys[1],

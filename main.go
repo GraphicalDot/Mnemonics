@@ -96,6 +96,12 @@ func main() {
 
 
 
+		ChildPublicContextHandler := &appsettings.ContextHandler{&context, encryption.MasterToChildPublic}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("POST").Path("/child_public_key").Name("ChildPublicKey").Handler(ChildPublicContextHandler)
+
+
+
 
 		log.Fatal(http.ListenAndServe(":8001", handlers.CORS()(handlers.LoggingHandler(os.Stdout, router))))
 

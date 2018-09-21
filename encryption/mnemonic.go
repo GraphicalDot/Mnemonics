@@ -12,6 +12,9 @@ import (
         "encoding/hex"
         "io/ioutil"
         "github.com/davecgh/go-spew/spew"
+        _ "github.com/decred/dcrd/dcrec/secp256k1"
+        "github.com/tyler-smith/go-bip32"
+
 )
 
 
@@ -54,8 +57,8 @@ type ChildMnemonicKeysStruct struct{
 type KeysIndexesMnemonicStruct struct{
     Mnemonic string `json:"mnemonic"`
     KeyIndexes []uint32 `json:"key_indexes"`
-
 }
+
 
 
 func(c *ChildMnemonicKeysStruct) DataValidation() (string, bool){
@@ -134,6 +137,74 @@ func ChildMnemonicKeys(appcontext *appsettings.AppContext, w http.ResponseWriter
 
 
 }
+
+
+type MasterChildStruct struct{
+    SerializedPublic string `json:"serialized_public_key"`
+    ChildPublic string `json:"child_public_key"`
+    KeyIndex uint32 `json:"child_key_index"`
+}
+
+
+func MasterToChildPublic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
+    //This is the mthod to get public keys from the indexes,
+    //Arguments in request
+    //    Mnemonic
+    //    key_indexes
+    //          An array for the indexes, the indexes will be a array of string.
+    //result
+    //      an array wiht dictionaries
+
+    data, err := ioutil.ReadAll(r.Body)
+    defer r.Body.Close()
+    if err != nil {panic(err)}
+    var child MasterChildStruct
+    err = json.Unmarshal(data, &child) //address needs to be passed, If you wont pass a pointer,
+                                      // A copy will be created
+    if err != nil {
+        panic(err.Error())
+         }
+
+
+    var bipKeys BipKeys
+
+
+
+    Hexdecoded, err := hex.DecodeString(child.SerializedPublic)
+    if err != nil{
+        log.Printf("Error in decodeding hex serialized *bip32.Key %s", err)
+    }
+
+    Bip32MasterPublic, err := bip32.Deserialize(Hexdecoded)
+    if err != nil{
+        log.Printf("Error in deserializing  *bip32.Key %s", err)
+    }
+
+
+    child_key, err := bipKeys.GeneratePublicChildKey(Bip32MasterPublic, child.KeyIndex)
+    //Alotting for type map[string]interface{} witht helenght equal to thekey iundexes generated
+    //by the user till now
+    if err != nil{
+      log.Println(err)
+      json.NewEncoder(w).Encode(&appsettings.AppResponse{"Error in generating public key",
+        false, true, nil})
+      return http.StatusUnauthorized, nil
+    }
+
+    child.ChildPublic = hex.EncodeToString(child_key.Key)
+    spew.Dump(child)
+
+    var inInterface map[string]interface{}
+    inrec, _ := json.Marshal(child)
+    json.Unmarshal(inrec, &inInterface)
+
+    json.NewEncoder(w).Encode(&appsettings.AppResponse{"Child public private keys based on the indexes", false, true, inInterface})
+
+
+    return http.StatusOK, nil
+
+}
+
 
 
 

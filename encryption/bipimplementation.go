@@ -126,6 +126,9 @@ func (instance *BipKeys) RootKeyGenerator(seed []byte) (*bip32.Key, *bip32.Key){
     return rootPrivateKey, rootPublicKey
 }
 
+
+
+
 func (instance *BipKeys) GeneratePublicChildKey(rootPublicKey *bip32.Key, childNumber uint32)(*bip32.Key, error){
     key, err := rootPublicKey.NewChildKey(childNumber)
     if err!= nil{
