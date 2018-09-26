@@ -100,8 +100,13 @@ func main() {
 		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
 		router.Methods("POST").Path("/child_public_key").Name("ChildPublicKey").Handler(ChildPublicContextHandler)
 
+		MnemonicContextHandler := &appsettings.ContextHandler{&context, users.GetMnemonic}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("GET").Path("/get_mnemonic").Name("ChildPublicKey").Handler(MnemonicContextHandler)
 
-
+		FromMnemonicContextHandler := &appsettings.ContextHandler{&context, users.FromMnemonic}
+		//mnemonicCheckAuth := appsettings.CheckAuth(MnemonicContextHandler, &context)
+		router.Methods("POST").Path("/from_mnemonic").Name("FromMnemonic").Handler(FromMnemonicContextHandler)
 
 		log.Fatal(http.ListenAndServe(":8001", handlers.CORS()(handlers.LoggingHandler(os.Stdout, router))))
 

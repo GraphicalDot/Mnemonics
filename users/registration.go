@@ -109,6 +109,137 @@ func Bip32ToHex(key *bip32.Key) string {
     return HexRootPublicKey
 }
 
+
+
+func FromMnemonic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
+
+      data, err := ioutil.ReadAll(r.Body)
+      defer r.Body.Close()
+
+      //If there is an error reading the request params, The code will panic,
+      // You can handle the panic by using function closures as is handled in
+      //user login
+      if err != nil {panic(err)}
+
+      //Creating an instance of User struct and Unmarshalling incoming
+      // json into the User staruct instance
+      var mnemonicStruct GenerateMnemonic
+      err = json.Unmarshal(data, &mnemonicStruct) //address needs to be passed, If you wont pass a pointer,
+                                        // A copy will be created
+      if err != nil {
+          panic(err.Error())
+           }
+
+      Keys := encryption.BipKeys{}
+      log.Println(mnemonicStruct.Mnemonic)
+
+      seed := Keys.GenerateSeed(mnemonicStruct.Mnemonic, []byte(""))
+      rootPrivateKey, rootPublicKey := Keys.RootKeyGenerator(seed)
+      log.Printf("Root Private key %s", rootPrivateKey)
+      log.Printf("Root Public key %s", rootPublicKey)
+
+
+
+      //HexRootPublicKey := Bip32ToHex(rootPublicKey)
+
+
+      //log.Printf("Here the is key.key root public %s", hex.EncodeToString(rootPublicKey.Key))
+      //log.Println(hex_serialized_key)
+
+      //dese, err := hex.DecodeString(hex_serialized_key)
+      //dude, err := bip32.Deserialize(dese)
+      //log.Printf("Here is the recovered desrialized key %s", dude)
+      //log.Printf("Here is the recovered desrialized key %s", dude.Key)
+
+      nthChildPrivate, nthChildPublic, err := Keys.GeneratePrivateChildKey(rootPrivateKey, 0)
+      if err != nil{
+          log.Println("")
+
+      }
+      log.Printf("0th index Private key  is  %s", hex.EncodeToString(nthChildPrivate.Key))
+      log.Printf("0th index Public key  is  %s", hex.EncodeToString(nthChildPublic.Key))
+
+      //HexChildPublicKey := Bip32ToHex(nthChildPublic)
+      mnemonicStruct.MasterPublicKey = hex.EncodeToString(rootPublicKey.Key)
+      mnemonicStruct.MasterPrivateKey = hex.EncodeToString(rootPrivateKey.Key)
+
+      mnemonicStruct.ZerothPublicKey = hex.EncodeToString(nthChildPublic.Key)
+      mnemonicStruct.ZerothPrivateKey = hex.EncodeToString(nthChildPrivate.Key)
+
+      var inInterface map[string]interface{}
+      inrec, _ := json.Marshal(mnemonicStruct)
+      json.Unmarshal(inrec, &inInterface)
+
+      response := &appsettings.AppResponse{fmt.Sprintf("Nothing new"),
+                        false, true, inInterface}
+
+      json.NewEncoder(w).Encode(response)
+        return http.StatusOK, nil
+
+
+}
+
+
+
+
+func GetMnemonic(appcontext *appsettings.AppContext, w http.ResponseWriter, r *http.Request)(int, error){
+      Keys := encryption.BipKeys{}
+      entropy, _ := Keys.GenerateEntropy(256)
+      //log.Printf("This is the entropy generated %s", entropy)
+      mnemonic, _ := Keys.GenerateMnemonic(entropy)
+      log.Println(mnemonic)
+
+      seed := Keys.GenerateSeed(mnemonic, []byte(""))
+      rootPrivateKey, rootPublicKey := Keys.RootKeyGenerator(seed)
+      log.Printf("Root Private key %s", rootPrivateKey)
+      log.Printf("Root Public key %s", rootPublicKey)
+
+
+
+      //HexRootPublicKey := Bip32ToHex(rootPublicKey)
+
+
+      //log.Printf("Here the is key.key root public %s", hex.EncodeToString(rootPublicKey.Key))
+      //log.Println(hex_serialized_key)
+
+      //dese, err := hex.DecodeString(hex_serialized_key)
+      //dude, err := bip32.Deserialize(dese)
+      //log.Printf("Here is the recovered desrialized key %s", dude)
+      //log.Printf("Here is the recovered desrialized key %s", dude.Key)
+
+      nthChildPrivate, nthChildPublic, err := Keys.GeneratePrivateChildKey(rootPrivateKey, 0)
+      if err != nil{
+          log.Println("")
+
+      }
+      log.Printf("0th index Private key  is  %s", hex.EncodeToString(nthChildPrivate.Key))
+      log.Printf("0th index Public key  is  %s", hex.EncodeToString(nthChildPublic.Key))
+
+      //HexChildPublicKey := Bip32ToHex(nthChildPublic)
+      var mnemonicStruct GenerateMnemonic
+      mnemonicStruct.Mnemonic = mnemonic
+      mnemonicStruct.MasterPublicKey = hex.EncodeToString(rootPublicKey.Key)
+      mnemonicStruct.MasterPrivateKey = hex.EncodeToString(rootPrivateKey.Key)
+
+      mnemonicStruct.ZerothPublicKey = hex.EncodeToString(nthChildPublic.Key)
+      mnemonicStruct.ZerothPrivateKey = hex.EncodeToString(nthChildPrivate.Key)
+
+      var inInterface map[string]interface{}
+      inrec, _ := json.Marshal(mnemonicStruct)
+      json.Unmarshal(inrec, &inInterface)
+
+      response := &appsettings.AppResponse{fmt.Sprintf("Nothing new"),
+                        false, true, inInterface}
+
+      json.NewEncoder(w).Encode(response)
+        return http.StatusOK, nil
+
+
+}
+
+
+
+
 func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter, r *http.Request) (int, error){
 
           //Reading response data from the api
@@ -172,7 +303,6 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 userStruct.UserTime() //updates user struct with time stamp at which the user is created
                 userStruct.Generateuuid() //Updates the password with bcrypt of password
                 userPassword := userStruct.GeneratePassword()
-
                 //This will generate address from encryption.address.go file and add to user struct in Address map.
 
 
@@ -180,6 +310,7 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 entropy, _ := Keys.GenerateEntropy(256)
                 //log.Printf("This is the entropy generated %s", entropy)
                 mnemonic, _ := Keys.GenerateMnemonic(entropy)
+                log.Println(mnemonic)
 
                 seed := Keys.GenerateSeed(mnemonic, []byte(""))
                 rootPrivateKey, rootPublicKey := Keys.RootKeyGenerator(seed)

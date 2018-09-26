@@ -25,6 +25,21 @@ type KeyRequest struct{
 
 
 
+type GenerateMnemonic struct{
+    Mnemonic string `json:"mnemonic"`
+    MasterPublicKey string `json:"master_public_key"`
+    MasterPrivateKey string `json:"master_private_key"`
+    //SerializedPublicKey string `gorethink:"serialized_public_key" bson:"serialized_public_key" json:"serialized_public_key"`
+
+    ZerothPublicKey string `json:"zeroth_public_key"`
+    ZerothPrivateKey string `json:"zeroth_private_key"`
+    //SerializedZerothPublicKey string `gorethink:"serialized_zeroth_public_key" bson:"serialized_zeroth_public_key" json:"serialized_zeroth_public_key"`
+
+
+}
+
+
+
 
 type UserStruct struct{
     UserID string `bson:"user_id" json:"user_id"`
