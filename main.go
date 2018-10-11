@@ -31,13 +31,16 @@ func TestHandler(c *appsettings.AppContext, w http.ResponseWriter, req *http.Req
 
 func main() {
 		//file, fileerror := os.Open("settings/config.json")
+		rethinkAddr := os.Args[1]
+
 
 		j, _ := ioutil.ReadFile("config.json")
 		configfile, _ := simplejson.NewFromReader(bytes.NewReader(j))
+
 		router := mux.NewRouter()
 
 
-		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), RethinkSession: appsettings.InitRethinkdb(configfile),  Config: configfile}
+		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), RethinkSession: appsettings.InitRethinkdb(configfile, rethinkAddr),  Config: configfile}
 
 
 		//This function generates a random string everytime the app restarts,

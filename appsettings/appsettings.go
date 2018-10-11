@@ -206,9 +206,8 @@ func Initdb(configfile  *simplejson.Json) *mgo.Session{
 }
 
 //This function creates a dbconnection
-func InitRethinkdb(configfile  *simplejson.Json) *r.Session{
+func InitRethinkdb(configfile  *simplejson.Json, address string) *r.Session{
     dbconfig := configfile.Get("rethinkdb")
-    address, _ := dbconfig.Get("address").String()
     username, _ := dbconfig.Get("username").String()
     password, _ := dbconfig.Get("password").String()
 
