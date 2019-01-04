@@ -10,13 +10,13 @@ import (
     "encoding/hex"
     "time"
     "errors"
-    "gopkg.in/mgo.v2/bson"
+    //"gopkg.in/mgo.v2/bson"
     _ "golang.org/x/crypto/bcrypt"
     "gitlab.com/mesha/Mnemonics/appsettings"
     "gitlab.com/mesha/Mnemonics/encryption"
     _ "github.com/skip2/go-qrcode"
     "github.com/satori/go.uuid"
-    rDB "gopkg.in/gorethink/gorethink.v4"
+    //rDB "gopkg.in/gorethink/gorethink.v4"
     "github.com/tyler-smith/go-bip32"
 
 
@@ -268,6 +268,9 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                     false, true, nil})
                   return http.StatusUnauthorized, nil
           }
+
+
+          /*
           session := appContext.Db.Copy()
           defer session.Close()
 
@@ -414,7 +417,6 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                         panic(err)
                       }
 
-
                 //var encryptionStruct encryption.Encryption = &encryption.Asymmetric{}
               response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", userStruct.UserID),
                                 false, true, map[string]interface{}{"password": userPassword, "user_id": userStruct.UserID, "secrets": g.Secrets}}
@@ -423,6 +425,9 @@ func UserRegistration(appContext *appsettings.AppContext, w http.ResponseWriter,
                 return http.StatusOK, nil
               }else {
                 json.NewEncoder(w).Encode(&appsettings.AppResponse{"Email id has already been registered with us ", true, false, nil})
-                return http.StatusUnauthorized, nil
             }
+            */
+            return http.StatusUnauthorized, nil
+
+
 }

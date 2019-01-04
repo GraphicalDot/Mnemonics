@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	 _  "github.com/davecgh/go-spew/spew"
-	 rDB "gopkg.in/gorethink/gorethink.v4"
+	 //rDB "gopkg.in/gorethink/gorethink.v4"
 
 
 	"net/http"
@@ -31,7 +31,7 @@ func TestHandler(c *appsettings.AppContext, w http.ResponseWriter, req *http.Req
 
 func main() {
 		//file, fileerror := os.Open("settings/config.json")
-		rethinkAddr := os.Args[1]
+		//rethinkAddr := os.Args[1]
 
 
 		j, _ := ioutil.ReadFile("config.json")
@@ -40,7 +40,8 @@ func main() {
 		router := mux.NewRouter()
 
 
-		context := appsettings.AppContext{Db: appsettings.Initdb(configfile), RethinkSession: appsettings.InitRethinkdb(configfile, rethinkAddr),  Config: configfile}
+		//context := appsettings.AppContext{Db: appsettings.Initdb(configfile), RethinkSession: appsettings.InitRethinkdb(configfile, rethinkAddr),  Config: configfile}
+		context := appsettings.AppContext{Config: configfile}
 
 
 		//This function generates a random string everytime the app restarts,
@@ -57,7 +58,6 @@ func main() {
 		if err != nil {
 				fmt.Println(err)
 			}
-		*/
 
 		rethinkdbSettings:= context.Config.Get("rethinkdb")
 		rethinkDBName, _ := rethinkdbSettings.Get("database").String()
@@ -70,15 +70,16 @@ func main() {
 						fmt.Println(err)
 		}
 
+		*/
 
 
-		UserLoginContextHandler := &appsettings.ContextHandler{&context, users.Userlogin}
-		userCheckAuth := appsettings.CheckAuth(UserLoginContextHandler, &context)
-		router.Methods("POST").Path("/login").Name("Userlogin").Handler(userCheckAuth)
+		//UserLoginContextHandler := &appsettings.ContextHandler{&context, users.Userlogin}
+		//userCheckAuth := appsettings.CheckAuth(UserLoginContextHandler, &context)
+		//router.Methods("POST").Path("/login").Name("Userlogin").Handler(userCheckAuth)
 
 
-		RegistrationContextHandler := &appsettings.ContextHandler{&context, users.UserRegistration}
-		router.Methods("POST").Path("/registration").Name("Registration").Handler(RegistrationContextHandler)
+		//RegistrationContextHandler := &appsettings.ContextHandler{&context, users.UserRegistration}
+		//router.Methods("POST").Path("/registration").Name("Registration").Handler(RegistrationContextHandler)
 
 		GetKeysContextHandler := &appsettings.ContextHandler{&context, users.GetKeys}
 		router.Methods("POST").Path("/getkeys").Name("Getkeys").Handler(GetKeysContextHandler)

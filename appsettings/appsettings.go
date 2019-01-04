@@ -76,9 +76,9 @@ type ContextHandler struct {
 //AppContext provides the app context to handlers.  This *cannot* contain request-specific keys like
 //sessionId or similar.  It is shared across requests.
 type AppContext struct {
-    Db    *mgo.Session
+    //Db    *mgo.Session
     Config *simplejson.Json
-    RethinkSession *r.Session
+    //RethinkSession *r.Session
 }
 
 

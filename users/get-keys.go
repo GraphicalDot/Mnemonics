@@ -2,14 +2,14 @@
 package users
 
 import (
-    "fmt"
+    //"fmt"
     "net/http"
-    "log"
-    "encoding/json"
-    "io/ioutil"
-    "gopkg.in/mgo.v2/bson"
+    //"log"
+    //"encoding/json"
+    //"io/ioutil"
+    //"gopkg.in/mgo.v2/bson"
     "gitlab.com/mesha/Mnemonics/appsettings"
-    "github.com/davecgh/go-spew/spew"
+    //"github.com/davecgh/go-spew/spew"
 
 
 
@@ -21,6 +21,7 @@ import (
 func GetKeys(appContext *appsettings.AppContext, w http.ResponseWriter, r *http.Request) (int, error){
 
           //Reading response data from the api
+          /*
           data, err := ioutil.ReadAll(r.Body)
           defer r.Body.Close()
 
@@ -102,11 +103,12 @@ func GetKeys(appContext *appsettings.AppContext, w http.ResponseWriter, r *http.
 
 
           log.Printf("This is the dbName %s", databaseName)
-          */
           result := map[string]interface{}{"secrets": secrets.Secrets}
 
           response := &appsettings.AppResponse{fmt.Sprintf("User succedeed with userid %s", "tatti"), false, true, result}
 
           json.NewEncoder(w).Encode(response)
+            */
             return http.StatusOK, nil
+
 }

@@ -3,13 +3,13 @@ package users
 
 import (
     "fmt"
-    "log"
-    "time"
+    //"log"
+    //"time"
     "net/http"
-    "io/ioutil"
-    "encoding/json"
-    "gopkg.in/mgo.v2/bson"
-    "github.com/dgrijalva/jwt-go"
+    //"io/ioutil"
+    //"encoding/json"
+    //"gopkg.in/mgo.v2/bson"
+    //"github.com/dgrijalva/jwt-go"
     "gitlab.com/mesha/Mnemonics/appsettings"
 )
 
@@ -60,6 +60,7 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
     }
     }()
     */
+    /*
         log.Println("Entered into the Userlogi")
         session := appcontext.Db.Copy()
         defer session.Close()
@@ -105,19 +106,14 @@ func Userlogin(appcontext *appsettings.AppContext, w http.ResponseWriter, r *htt
             token := jwt.New(jwt.SigningMethodHS256)
             //A map to store our claims
             claims := token.Claims.(jwt.MapClaims)
-            /*Set token claims */
             claims["userid"] =  userCredentials.UserID
             claims["exp"] = time.Now().Add(time.Hour*12).Unix()
             tokenString, _ := token.SignedString(mySigningKey)
             log.Printf("This is the tokenstring %s", tokenString)
 
             json.NewEncoder(w).Encode(&appsettings.AppLoginResponse{"login successful", false, true, string(tokenString)})
-            return http.StatusOK, nil
-
-
           }
-
-
-
+          */
+          return http.StatusOK, nil
 
 }
